@@ -36,6 +36,7 @@ def main():
     print("Output shape: ", output.shape)
     print("Attention_weights: ", attn_weights.shape)
 
+    print(torch.sum(attn_weights, dim=-1))
     return 
 
 
