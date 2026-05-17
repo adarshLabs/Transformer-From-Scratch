@@ -1,0 +1,72 @@
+import torch
+import torch.nn as nn
+
+try:
+    from .scaled_dot_product_attention import ScaledDotProductAttention
+except ImportError:
+    from scaled_dot_product_attention import ScaledDotProductAttention
+
+class MultiHeadAttention(nn.Module):
+
+    def __init__(self, embed_dim, num_heads, dropout=0.0):
+        super().__init__()
+        assert embed_dim % num_heads==0
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.dropout = dropout
+        self.head_dim = (self.embed_dim // self.num_heads)
+        self.q_proj = nn.Linear(embed_dim, embed_dim)
+        self.k_proj = nn.Linear(embed_dim, embed_dim)
+        self.v_proj = nn.Linear(embed_dim, embed_dim)
+
+        self.out_proj = nn.Linear(embed_dim, embed_dim)
+        self.attention = ScaledDotProductAttention(dropout)
+
+    def split_head(self, x):
+        B, S, E = x.shape
+        x = x.view(B, S, self.num_heads, self.head_dim)
+        x = x.transpose(1, 2)
+        return x
+    
+    def combine_heads(self, x):
+        B, H, S, D = x.shape
+
+        x = x.transpose(1, 2)
+        x = x.contiguous().view(B, S, self.embed_dim)
+        return x
+    
+    def forward(self, x, mask = None):
+        Q = self.q_proj(x)
+        K = self.k_proj(x)
+        V = self.v_proj(x)
+
+        Q_split = self.split_head(Q)
+        K_split = self.split_head(K)
+        V_split = self.split_head(V)
+
+        attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
+
+        concatenated_output = self.combine_heads(attn_output)
+        output = self.out_proj(concatenated_output)
+
+        return output, attn_weights
+
+
+def main():
+    x = torch.randn(2, 16, 128)
+
+    mha = MultiHeadAttention(
+
+        embed_dim=128,
+
+        num_heads=8
+
+    )
+
+    output, attn = mha(x)
+
+    assert output.shape == (2, 16, 128)
+    assert attn.shape == (2, 8, 16, 16)
+    
+if __name__=="__main__":
+    main()

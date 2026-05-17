@@ -1,9 +1,12 @@
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
-class ScaledDotProductAttention:
-    def __init__(self):
-        pass
+
+class ScaledDotProductAttention(nn.Module):
+    def __init__(self, dropout=0.0):
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, Q, K, V, mask=None):
         dim = Q.size(-1)
@@ -16,6 +19,7 @@ class ScaledDotProductAttention:
 
         
         attention_weights = F.softmax(scores, dim=-1)
+        attention_weights = self.dropout(attention_weights)
         output = torch.matmul(attention_weights, V)
         return output, attention_weights
         
