@@ -12,6 +12,7 @@ multi-head attention.
 - Causal, padding, and combined attention masks
 - Sinusoidal positional encoding
 - Learned positional embedding
+- Rotary positional embedding
 - Test that compares the custom multi-head attention output with
   `torch.nn.MultiheadAttention`
 
@@ -26,6 +27,7 @@ attention/
     test_against_pytorch_mha.py
 positional_encoding/
   learned_positional_embedding.py
+  rotary_positional_embedding.py
   sinusoidal_positional_encoding.py
 ```
 
@@ -52,6 +54,7 @@ PYTHONPYCACHEPREFIX=/private/tmp/pycache python3 -m py_compile \
   attention/scaled_dot_product_attention.py \
   attention/tests/test_against_pytorch_mha.py \
   positional_encoding/learned_positional_embedding.py \
+  positional_encoding/rotary_positional_embedding.py \
   positional_encoding/sinusoidal_positional_encoding.py
 ```
 
