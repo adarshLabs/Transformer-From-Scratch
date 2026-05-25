@@ -1,9 +1,9 @@
 # GPT-2 Implementation
 
 A from-scratch PyTorch implementation of core GPT-2 building blocks. The
-repository currently focuses on attention and positional encoding components,
-with small runnable demos and a comparison test against PyTorch's built-in
-multi-head attention.
+repository currently focuses on attention, positional encoding, and transformer
+block components, with small runnable demos and tests for attention and encoder
+pipeline behavior.
 
 ## Current Components
 
@@ -13,8 +13,12 @@ multi-head attention.
 - Sinusoidal positional encoding
 - Learned positional embedding
 - Rotary positional embedding
+- Feed-forward network
+- Transformer encoder block
 - Test that compares the custom multi-head attention output with
   `torch.nn.MultiheadAttention`
+- Transformer encoder pipeline test with learned positional embeddings, padding
+  masks, forward pass, and backward pass checks
 
 ## Project Structure
 
@@ -29,6 +33,11 @@ positional_encoding/
   learned_positional_embedding.py
   rotary_positional_embedding.py
   sinusoidal_positional_encoding.py
+transformer_blocks/
+  feed_forward_network.py
+  transformer_encoder_block.py
+  tests/
+    test_transformer_encoder_pipeline.py
 ```
 
 ## Running Checks
@@ -45,6 +54,12 @@ Run the custom multi-head attention comparison against PyTorch:
 python3 attention/tests/test_against_pytorch_mha.py
 ```
 
+Run the transformer encoder pipeline test:
+
+```bash
+python3 transformer_blocks/tests/test_transformer_encoder_pipeline.py
+```
+
 Compile all current Python files:
 
 ```bash
@@ -55,7 +70,10 @@ PYTHONPYCACHEPREFIX=/private/tmp/pycache python3 -m py_compile \
   attention/tests/test_against_pytorch_mha.py \
   positional_encoding/learned_positional_embedding.py \
   positional_encoding/rotary_positional_embedding.py \
-  positional_encoding/sinusoidal_positional_encoding.py
+  positional_encoding/sinusoidal_positional_encoding.py \
+  transformer_blocks/feed_forward_network.py \
+  transformer_blocks/transformer_encoder_block.py \
+  transformer_blocks/tests/test_transformer_encoder_pipeline.py
 ```
 
 If `pytest` is installed, the attention comparison can also be run with:
@@ -66,5 +84,5 @@ python3 -m pytest
 
 ## Notes
 
-The full GPT-2 model stack, transformer block, tokenizer integration, training
-loop, and text generation entry point are not implemented yet.
+The full GPT-2 model stack, decoder block, tokenizer integration, training loop,
+and text generation entry point are not implemented yet.
