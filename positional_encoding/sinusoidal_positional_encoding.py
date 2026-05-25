@@ -7,9 +7,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         super().__init__()
 
         assert embed_dim % 2 == 0,  (
-
             "Embedding dimension must be even"
-
         )
 
         pe = torch.zeros(max_seq_len, embed_dim)
@@ -21,18 +19,14 @@ class SinusoidalPositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(position * div_term) 
 
         pe = pe.unsqueeze(0)
-
         self.register_buffer("pe", pe)
 
 
     def forward(self, x):
         seq_len = x.size(1)
         assert seq_len <= self.pe.size(1), (
-
             "Sequence length exceeds "
-
             "maximum positional encoding length"
-
         )
         return x + self.pe[:, :seq_len]
 
@@ -52,21 +46,14 @@ def main():
     encoding = pe.pe.squeeze(0)
 
     plt.imshow(
-
         encoding.numpy(),
-
         aspect="auto"
-
     )
 
     plt.xlabel("Embedding Dimension")
-
     plt.ylabel("Position")
-
     plt.title(
-
         "Sinusoidal Positional Encoding"
-
     )
 
     plt.colorbar()
