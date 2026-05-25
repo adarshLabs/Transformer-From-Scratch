@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 
 try:
-    from attention.masking import causal_mask, combined_mask, padding_mask
+    from attention.masking import padding_mask
     from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[2]))
-    from attention.masking import causal_mask, combined_mask, padding_mask
+    from attention.masking import padding_mask
     from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 
@@ -44,10 +44,11 @@ def test_transformer_encoder_pipeline_forward_and_backward():
     token_embeddings = token_embedding(input_ids)
     x = positional_embedding(token_embeddings)
 
-    mask = combined_mask(
-        causal_mask(seq_len, device=input_ids.device),
-        padding_mask(input_ids, padding_token=padding_token),
-    )
+    mask = padding_mask(input_ids, padding_token=padding_token)
+
+    _, attention_weights = encoder_block.attention(encoder_block.norm1(x), mask)
+    assert attention_weights.shape == (batch_size, num_heads, seq_len, seq_len)
+    assert torch.all(attention_weights[0, :, :, 4:] == 0)
 
     output = encoder_block(x, mask)
 
