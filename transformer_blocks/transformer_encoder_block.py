@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from attention.multi_head_attention import MultiHeadAttention
 from transformer_blocks.feed_forward_network import FeedForwardNetwork
+from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
 
 class TransformerEncoderBlock(nn.Module):
     def __init__(self, embed_dim, num_heads, expansion_factor=4, dropout=0.1):
@@ -25,3 +26,12 @@ class TransformerEncoderBlock(nn.Module):
         return x
     
 
+def main():
+    batch_size=2
+    seq_len=10
+    d_model=64
+    num_heads = 4
+
+
+if __name__=="__main__":
+    main()

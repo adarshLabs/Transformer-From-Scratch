@@ -37,11 +37,3 @@ class RotaryPositionalEmbedding(nn.Module):
         k_rot = k* cos + (rotate_half(k) * sin)
 
         return q_rot, k_rot
-
-
-def main():
-    pass
-
-
-if __name__=="__main__":
-    main()

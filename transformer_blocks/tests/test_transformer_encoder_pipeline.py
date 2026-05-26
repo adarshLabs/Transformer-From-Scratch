@@ -6,12 +6,12 @@ import torch.nn as nn
 
 try:
     from attention.masking import padding_mask
-    from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
+    from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[2]))
     from attention.masking import padding_mask
-    from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
+    from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 
 
@@ -33,7 +33,6 @@ def test_transformer_encoder_pipeline_forward_and_backward():
     )
 
     token_embedding = nn.Embedding(vocab_size, embed_dim)
-    positional_embedding = LearnedPositionalEmbedding(seq_len, embed_dim)
     encoder_block = TransformerEncoderBlock(
         embed_dim=embed_dim,
         num_heads=num_heads,
@@ -41,15 +40,37 @@ def test_transformer_encoder_pipeline_forward_and_backward():
         dropout=0.0,
     )
 
-    token_embeddings = token_embedding(input_ids)
-    x = positional_embedding(token_embeddings)
+    x = token_embedding(input_ids)
 
     mask = padding_mask(input_ids, padding_token=padding_token)
 
-    _, attention_weights = encoder_block.attention(
-        query=encoder_block.norm1(x),
-        mask=mask,
+    normalized_x = encoder_block.norm1(x)
+    q = encoder_block.attention.q_proj(normalized_x)
+    k = encoder_block.attention.k_proj(normalized_x)
+    v = encoder_block.attention.v_proj(normalized_x)
+
+    q = encoder_block.attention.split_head(q)
+    k = encoder_block.attention.split_head(k)
+    v = encoder_block.attention.split_head(v)
+
+    rotary_embedding = RotaryPositionalEmbedding(encoder_block.attention.head_dim)
+    q_rot, k_rot = rotary_embedding.apply_rotary(q, k)
+
+    assert q_rot.shape == q.shape
+    assert k_rot.shape == k.shape
+    assert torch.allclose(q.norm(dim=-1), q_rot.norm(dim=-1), atol=1e-5)
+    assert torch.allclose(k.norm(dim=-1), k_rot.norm(dim=-1), atol=1e-5)
+
+    attention_output, attention_weights = encoder_block.attention.attention(
+        q_rot,
+        k_rot,
+        v,
+        mask,
     )
+    attention_output = encoder_block.attention.combine_heads(attention_output)
+    attention_output = encoder_block.attention.out_proj(attention_output)
+
+    assert attention_output.shape == (batch_size, seq_len, embed_dim)
     assert attention_weights.shape == (batch_size, num_heads, seq_len, seq_len)
     assert torch.all(attention_weights[0, :, :, 4:] == 0)
 
