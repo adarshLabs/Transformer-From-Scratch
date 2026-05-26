@@ -35,10 +35,16 @@ class MultiHeadAttention(nn.Module):
         x = x.contiguous().view(B, S, self.embed_dim)
         return x
     
-    def forward(self, x, mask = None):
-        Q = self.q_proj(x)
-        K = self.k_proj(x)
-        V = self.v_proj(x)
+    def forward(self, query, key=None, value=None, mask = None):
+
+        if key is None:
+            key = query
+        if value is None:
+            value = key
+
+        Q = self.q_proj(query)
+        K = self.k_proj(key)
+        V = self.v_proj(value)
 
         Q_split = self.split_head(Q)
         K_split = self.split_head(K)
