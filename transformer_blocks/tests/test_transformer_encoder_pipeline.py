@@ -46,7 +46,10 @@ def test_transformer_encoder_pipeline_forward_and_backward():
 
     mask = padding_mask(input_ids, padding_token=padding_token)
 
-    _, attention_weights = encoder_block.attention(encoder_block.norm1(x), mask)
+    _, attention_weights = encoder_block.attention(
+        query=encoder_block.norm1(x),
+        mask=mask,
+    )
     assert attention_weights.shape == (batch_size, num_heads, seq_len, seq_len)
     assert torch.all(attention_weights[0, :, :, 4:] == 0)
 

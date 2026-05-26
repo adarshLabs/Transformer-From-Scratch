@@ -16,7 +16,7 @@ class TransformerEncoderBlock(nn.Module):
     def forward(self, x, attention_mask):
         residual = x
         x = self.norm1(x)
-        attention_output, _ = self.attention(x, attention_mask)
+        attention_output, _ = self.attention(query=x, mask=attention_mask)
         x = residual + self.dropout(attention_output)
         x = self.norm2(x)
         residual = x
@@ -24,5 +24,4 @@ class TransformerEncoderBlock(nn.Module):
         x = residual  + self.dropout(ffn_output)
         return x
     
-
 

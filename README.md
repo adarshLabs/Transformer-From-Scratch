@@ -2,22 +2,25 @@
 
 A from-scratch PyTorch implementation of core GPT-2 building blocks. The
 repository currently focuses on attention, positional encoding, and transformer
-block components, with small runnable demos and tests for attention and encoder
-pipeline behavior.
+block components, with small runnable demos and tests for attention, encoder
+pipeline behavior, and decoder cross-attention behavior.
 
 ## Current Components
 
 - Scaled dot-product attention
-- Multi-head self-attention
+- Multi-head self-attention and cross-attention
 - Causal, padding, and combined attention masks
 - Sinusoidal positional encoding
 - Learned positional embedding
 - Rotary positional embedding
 - Feed-forward network
 - Transformer encoder block
+- Transformer decoder block with cross-attention
 - Test that compares the custom multi-head attention output with
   `torch.nn.MultiheadAttention`
 - Transformer encoder pipeline test with learned positional embeddings, padding
+  masks, forward pass, and backward pass checks
+- Transformer decoder pipeline test with causal masking, cross-attention padding
   masks, forward pass, and backward pass checks
 
 ## Project Structure
@@ -35,8 +38,10 @@ positional_encoding/
   sinusoidal_positional_encoding.py
 transformer_blocks/
   feed_forward_network.py
+  transformer_decoder_block.py
   transformer_encoder_block.py
   tests/
+    test_transformer_decoder_pipeline.py
     test_transformer_encoder_pipeline.py
 ```
 
@@ -60,6 +65,12 @@ Run the transformer encoder pipeline test:
 python3 transformer_blocks/tests/test_transformer_encoder_pipeline.py
 ```
 
+Run the transformer decoder pipeline test:
+
+```bash
+python3 transformer_blocks/tests/test_transformer_decoder_pipeline.py
+```
+
 Compile all current Python files:
 
 ```bash
@@ -72,7 +83,9 @@ PYTHONPYCACHEPREFIX=/private/tmp/pycache python3 -m py_compile \
   positional_encoding/rotary_positional_embedding.py \
   positional_encoding/sinusoidal_positional_encoding.py \
   transformer_blocks/feed_forward_network.py \
+  transformer_blocks/transformer_decoder_block.py \
   transformer_blocks/transformer_encoder_block.py \
+  transformer_blocks/tests/test_transformer_decoder_pipeline.py \
   transformer_blocks/tests/test_transformer_encoder_pipeline.py
 ```
 
@@ -84,5 +97,5 @@ python3 -m pytest
 
 ## Notes
 
-The full GPT-2 model stack, decoder block, tokenizer integration, training loop,
-and text generation entry point are not implemented yet.
+The full GPT-2 model stack, tokenizer integration, training loop, and text
+generation entry point are not implemented yet.
