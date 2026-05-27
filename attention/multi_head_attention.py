@@ -8,7 +8,7 @@ except ImportError:
 
 class MultiHeadAttention(nn.Module):
 
-    def __init__(self, embed_dim, num_heads, dropout=0.0):
+    def __init__(self, embed_dim, num_heads, dropout=0.1, qk_positional_encoding=None):
         super().__init__()
         assert embed_dim % num_heads==0
         self.embed_dim = embed_dim
@@ -18,6 +18,8 @@ class MultiHeadAttention(nn.Module):
         self.q_proj = nn.Linear(embed_dim, embed_dim)
         self.k_proj = nn.Linear(embed_dim, embed_dim)
         self.v_proj = nn.Linear(embed_dim, embed_dim)
+
+        self.qk_positional_encoding = qk_positional_encoding
 
         self.out_proj = nn.Linear(embed_dim, embed_dim)
         self.attention = ScaledDotProductAttention(dropout)
@@ -49,6 +51,9 @@ class MultiHeadAttention(nn.Module):
         Q_split = self.split_head(Q)
         K_split = self.split_head(K)
         V_split = self.split_head(V)
+
+        if self.qk_positional_encoding is not None:
+            Q_split, K_split = self.qk_positional_encoding(Q_split, K_split)
 
         attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
 

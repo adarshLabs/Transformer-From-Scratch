@@ -5,10 +5,12 @@ from transformer_blocks.feed_forward_network import FeedForwardNetwork
 from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
 
 class TransformerEncoderBlock(nn.Module):
-    def __init__(self, embed_dim, num_heads, expansion_factor=4, dropout=0.1):
+    def __init__(self, embed_dim, num_heads, expansion_factor=4, dropout=0.1, qk_positional_encoding=None):
         super().__init__()
 
-        self.attention = MultiHeadAttention(embed_dim, num_heads, dropout)
+        head_dim = embed_dim//num_heads
+        rope = RotaryPositionalEmbedding(head_dim)
+        self.attention = MultiHeadAttention(embed_dim, num_heads, dropout, qk_positional_encoding)
         self.ffn = FeedForwardNetwork(embed_dim, expansion_factor, dropout)
         self.norm1 = nn.LayerNorm(embed_dim)
         self.norm2 = nn.LayerNorm(embed_dim)
