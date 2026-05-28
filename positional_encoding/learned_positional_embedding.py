@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class LearnedPositionalEmbedding(nn.Module):
 
-    def __init__(self, max_seq_len, embed_dim):
+    def __init__(self, embed_dim, max_seq_len=512):
         super().__init__()
 
         self.position_embedding = nn.Embedding(max_seq_len, embed_dim)

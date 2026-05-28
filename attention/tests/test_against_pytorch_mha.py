@@ -35,13 +35,17 @@ def test_against_pytorch_mha():
     E = 128
     H = 8
     x = torch.randn(B, S, E)
-    custom_mha = MultiHeadAttention(embed_dim=128, num_heads=8)
+    custom_mha = MultiHeadAttention(embed_dim=128, num_heads=8, dropout=0.0)
     torch_mha = nn.MultiheadAttention(embed_dim=128, num_heads=8, batch_first=True)
 
     copy_weights(custom_mha, torch_mha)
 
-    torch_output, torch_attn = torch_mha(x, x, x, need_weights=True, average_attn_weights=False)
-    custom_output, custom_attn = custom_mha(x)
+    custom_mha.eval()
+    torch_mha.eval()
+
+    with torch.no_grad():
+        torch_output, torch_attn = torch_mha(x, x, x, need_weights=True, average_attn_weights=False)
+        custom_output, custom_attn = custom_mha(x)
 
     assert torch.allclose(torch_output, custom_output, atol=1e-5)
     assert torch.allclose(torch_attn, custom_attn, atol=1e-5)

@@ -41,8 +41,8 @@ def test_transformer_decoder_pipeline_forward_and_backward():
 
     target_embedding = nn.Embedding(vocab_size, embed_dim)
     source_embedding = nn.Embedding(vocab_size, embed_dim)
-    target_position = LearnedPositionalEmbedding(target_seq_len, embed_dim)
-    source_position = LearnedPositionalEmbedding(source_seq_len, embed_dim)
+    target_position = LearnedPositionalEmbedding(embed_dim=embed_dim, max_seq_len=target_seq_len)
+    source_position = LearnedPositionalEmbedding(embed_dim=embed_dim, max_seq_len=source_seq_len)
     decoder_block = TransformerDecoderBlock(
         embed_dim=embed_dim,
         num_heads=num_heads,

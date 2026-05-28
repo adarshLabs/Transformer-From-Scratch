@@ -53,7 +53,7 @@ class MultiHeadAttention(nn.Module):
         V_split = self.split_head(V)
 
         if self.qk_positional_encoding is not None:
-            Q_split, K_split = self.qk_positional_encoding(Q_split, K_split)
+            Q_split, K_split = self.qk_positional_encoding.apply_rotary(Q_split, K_split)
 
         attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
 
