@@ -2,20 +2,26 @@ import torch
 
 def causal_mask(seq_len, device=None):
 
+    # Base mask shape: (S, S), where future positions are zero.
     mask = torch.tril(torch.ones((seq_len, seq_len), device=device))
 
-    #shape should be (1, 1, seq_len, seq_len)
+    # Output shape: (1, 1, S, S), broadcast over batch and heads.
     return mask.bool().unsqueeze(0).unsqueeze(1)
 
 def padding_mask(input_ids, padding_token=0):
+    # input_ids shape: (B, S)
 
+    # Base mask shape: (B, S), with True for non-padding tokens.
     mask = (input_ids != padding_token)
 
-    #shape should be (batch_size, 1, 1, dim)
+    # Output shape: (B, 1, 1, S), broadcast over heads and query positions.
     return mask.unsqueeze(1).unsqueeze(2)
 
 
 def combined_mask(causal_mask, padding_mask):
+    # causal_mask shape: (1, 1, S, S)
+    # padding_mask shape: (B, 1, 1, S)
+    # Output shape: (B, 1, S, S)
     return causal_mask & padding_mask
 
 

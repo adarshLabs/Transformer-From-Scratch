@@ -37,6 +37,7 @@ def test_encoder_block_shapes():
     # Dummy Input
     # =================================================
 
+    # x shape: (batch_size, seq_len, d_model)
     x = torch.randn(
         batch_size,
         seq_len,
@@ -56,6 +57,7 @@ def test_encoder_block_shapes():
     # Forward Pass
     # =================================================
 
+    # output shape: (batch_size, seq_len, d_model)
     output = encoder_block(x, attention_mask=None)
 
     # =================================================
@@ -96,12 +98,14 @@ def test_decoder_block_shapes():
     # Dummy Inputs
     # =================================================
 
+    # decoder_input shape: (batch_size, seq_len, d_model)
     decoder_input = torch.randn(
         batch_size,
         seq_len,
         d_model,
     )
 
+    # encoder_output shape: (batch_size, seq_len, d_model)
     encoder_output = torch.randn(
         batch_size,
         seq_len,
@@ -112,6 +116,7 @@ def test_decoder_block_shapes():
     # Causal Mask
     # =================================================
 
+    # causal_masking shape: (1, 1, seq_len, seq_len)
     causal_masking = causal_mask(seq_len)
 
     # =================================================
@@ -127,6 +132,7 @@ def test_decoder_block_shapes():
     # Forward Pass
     # =================================================
 
+    # output shape: (batch_size, seq_len, d_model)
     output = decoder_block(
         x=decoder_input,
         encoder_output=encoder_output,
@@ -172,12 +178,14 @@ def test_no_nan_values():
     # Dummy Inputs
     # =================================================
 
+    # x shape: (batch_size, seq_len, d_model)
     x = torch.randn(
         batch_size,
         seq_len,
         d_model,
     )
 
+    # encoder_output shape: (batch_size, seq_len, d_model)
     encoder_output = torch.randn(
         batch_size,
         seq_len,
@@ -202,14 +210,17 @@ def test_no_nan_values():
     # Encoder Forward
     # =================================================
 
+    # encoder_out shape: (batch_size, seq_len, d_model)
     encoder_out = encoder_block(x, attention_mask=None)
 
     # =================================================
     # Decoder Forward
     # =================================================
 
+    # causal_masking shape: (1, 1, seq_len, seq_len)
     causal_masking = causal_mask(seq_len)
 
+    # decoder_out shape: (batch_size, seq_len, d_model)
     decoder_out = decoder_block(
         x=x,
         encoder_output=encoder_output,

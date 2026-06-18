@@ -20,14 +20,17 @@ class TransformerEncoder(nn.Module):
     ):
         super().__init__()
 
+        # Token embedding maps input ids from (B, S) to (B, S, E).
         self.token_embedding = nn.Embedding(vocab_size, embed_dim)
 
         self.qk_positional_encoding = None
+        use_rotary_positional_encoding = False
         if positional_encoding_type == "rope":
             head_dim = embed_dim // num_heads
             self.qk_positional_encoding = RotaryPositionalEmbedding(
                 head_dim
             )
+            use_rotary_positional_encoding = True
             self.input_positional_encoding = None
 
         elif positional_encoding_type == "learned":
@@ -55,19 +58,26 @@ class TransformerEncoder(nn.Module):
                     num_heads=num_heads,
                     expansion_factor=expansion_factor,
                     dropout=dropout,
-                    qk_positional_encoding=self.qk_positional_encoding
+                    qk_positional_encoding=self.qk_positional_encoding,
+                    use_rotary_positional_encoding=use_rotary_positional_encoding,
                 )
                 for _ in range(num_layers)
             ]
         )
 
     def forward(self, input_ids, attention_mask=None):
+        # input_ids shape: (B, S)
+        # attention_mask shape: broadcastable to (B, H, S, S).
         x = self.token_embedding(input_ids)
+        # x shape after token embedding: (B, S, E)
 
         if self.input_positional_encoding is not None:
+            # x shape stays: (B, S, E)
             x = self.input_positional_encoding(x)
 
         for layer in self.layers:
+            # x shape stays: (B, S, E)
             x = layer(x, attention_mask)
 
+        # Output shape: (B, S, E)
         return x

@@ -18,6 +18,7 @@ def main():
         high = vocab_size,
         size=(batch_size, seq_len)
     )
+    # input_ids shape: (batch_size, seq_len)
 
     model = TransformerEncoder(
         embed_dim=embed_dim,num_layers=num_layers,num_heads=num_heads,
@@ -25,6 +26,7 @@ def main():
         )
     
     output = model(input_ids)
+    # output shape: (batch_size, seq_len, embed_dim)
 
     expected_shape = (batch_size, seq_len, embed_dim)
 
@@ -45,4 +47,3 @@ def main():
 
 if __name__=="__main__":
     main()
-

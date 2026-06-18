@@ -14,6 +14,7 @@ class MultiHeadAttention(nn.Module):
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.dropout = dropout
+        # Per-head dimension D = E / H.
         self.head_dim = (self.embed_dim // self.num_heads)
         self.q_proj = nn.Linear(embed_dim, embed_dim)
         self.k_proj = nn.Linear(embed_dim, embed_dim)
@@ -25,19 +26,27 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention(dropout)
 
     def split_head(self, x):
+        # Input x shape: (B, S, E)
         B, S, E = x.shape
+        # Reshaped x shape: (B, S, H, D)
         x = x.view(B, S, self.num_heads, self.head_dim)
+        # Output x shape: (B, H, S, D)
         x = x.transpose(1, 2)
         return x
     
     def combine_heads(self, x):
+        # Input x shape: (B, H, S, D)
         B, H, S, D = x.shape
 
+        # Output x shape: (B, S, E)
         x = x.transpose(1, 2)
         x = x.contiguous().view(B, S, self.embed_dim)
         return x
     
     def forward(self, query, key=None, value=None, mask = None):
+        # query shape: (B, S_q, E)
+        # key/value shapes: (B, S_k, E); default to query for self-attention.
+        # mask shape: broadcastable to (B, H, S_q, S_k).
 
         if key is None:
             key = query
@@ -48,6 +57,7 @@ class MultiHeadAttention(nn.Module):
         K = self.k_proj(key)
         V = self.v_proj(value)
 
+        # Split projection shapes: (B, H, S_q, D), (B, H, S_k, D), (B, H, S_k, D)
         Q_split = self.split_head(Q)
         K_split = self.split_head(K)
         V_split = self.split_head(V)
@@ -57,13 +67,16 @@ class MultiHeadAttention(nn.Module):
 
         attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
 
+        # attn_output shape: (B, H, S_q, D), attn_weights shape: (B, H, S_q, S_k)
         concatenated_output = self.combine_heads(attn_output)
         output = self.out_proj(concatenated_output)
 
+        # output shape: (B, S_q, E)
         return output, attn_weights
 
 
 def main():
+    # Demo input shape: (B, S, E)
     x = torch.randn(2, 16, 128)
 
     mha = MultiHeadAttention(

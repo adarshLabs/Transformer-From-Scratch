@@ -9,7 +9,11 @@ class ScaledDotProductAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, Q, K, V, mask=None):
+        # Q shape: (B, H, S_q, D)
+        # K and V shapes: (B, H, S_k, D)
+        # mask shape: broadcastable to (B, H, S_q, S_k).
         dim = Q.size(-1)
+        # scores shape: (B, H, S_q, S_k)
         scores = torch.matmul(Q, K.transpose(-2, -1))
         scaling_factor = dim**0.5
         scores = scores/scaling_factor
@@ -20,7 +24,9 @@ class ScaledDotProductAttention(nn.Module):
         
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
+        # output shape: (B, H, S_q, D)
         output = torch.matmul(attention_weights, V)
+        # attention_weights shape: (B, H, S_q, S_k)
         return output, attention_weights
         
 
@@ -30,6 +36,7 @@ def main():
     seq_len = 25
     dim = 40
 
+    # Demo tensor shapes: (batch_size, heads, seq_len, dim)
     Q = torch.randn((batch_size, heads, seq_len, dim))
     K = torch.randn((batch_size, heads, seq_len, dim))
     V = torch.randn((batch_size, heads, seq_len, dim))
