@@ -15,7 +15,8 @@ pipeline behavior, and decoder cross-attention behavior.
 - Rotary positional embedding
 - Feed-forward network
 - Transformer encoder block
-- Transformer decoder block with cross-attention
+- Transformer decoder block with self-attention and cross-attention
+- Transformer encoder model with selectable positional encoding
 - Test that compares the custom multi-head attention output with
   `torch.nn.MultiheadAttention`
 - Transformer encoder pipeline test with learned positional embeddings, padding
@@ -43,7 +44,26 @@ transformer_blocks/
   tests/
     test_transformer_decoder_pipeline.py
     test_transformer_encoder_pipeline.py
+transformer_models/
+  transformer_encoder.py
+  tests/
+    test_tranformer_encoder_end_to_end.py
 ```
+
+## Positional Encoding Behavior
+
+The encoder supports `positional_encoding_type="rope"`, `"learned"`,
+`"sinusoidal"`, or no positional encoding.
+
+- Learned positional embeddings are added once to token embeddings at the model
+  input: `(B, S, E) -> (B, S, E)`.
+- Sinusoidal positional encodings are also added once at the model input:
+  `(B, S, E) -> (B, S, E)`.
+- Rotary positional embeddings are applied inside each self-attention layer to
+  the projected query and key tensors: `(B, H, S, D) -> (B, H, S, D)`.
+- Decoder self-attention can use RoPE in the same way. Decoder cross-attention
+  remains plain multi-head attention because target and source sequence lengths
+  may differ.
 
 ## Running Checks
 
@@ -71,6 +91,12 @@ Run the transformer decoder pipeline test:
 python3 transformer_blocks/tests/test_transformer_decoder_pipeline.py
 ```
 
+Run the transformer encoder end-to-end test:
+
+```bash
+PYTHONPATH=. python3 transformer_models/tests/test_tranformer_encoder_end_to_end.py
+```
+
 Compile all current Python files:
 
 ```bash
@@ -86,7 +112,10 @@ PYTHONPYCACHEPREFIX=/private/tmp/pycache python3 -m py_compile \
   transformer_blocks/transformer_decoder_block.py \
   transformer_blocks/transformer_encoder_block.py \
   transformer_blocks/tests/test_transformer_decoder_pipeline.py \
-  transformer_blocks/tests/test_transformer_encoder_pipeline.py
+  transformer_blocks/tests/test_transformer_encoder_pipeline.py \
+  transformer_blocks/tests/test_transformer_shapes.py \
+  transformer_models/transformer_encoder.py \
+  transformer_models/tests/test_tranformer_encoder_end_to_end.py
 ```
 
 If `pytest` is installed, the attention comparison can also be run with:

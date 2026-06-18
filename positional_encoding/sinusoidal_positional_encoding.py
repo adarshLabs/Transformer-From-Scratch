@@ -10,24 +10,30 @@ class SinusoidalPositionalEncoding(nn.Module):
             "Embedding dimension must be even"
         )
 
+        # Positional encoding table shape before batching: (max_seq_len, E)
         pe = torch.zeros(max_seq_len, embed_dim)
 
+        # position shape: (max_seq_len, 1)
         position = torch.arange(0, max_seq_len, dtype=torch.float32).unsqueeze(1)     
+        # div_term shape: (E / 2)
         div_term = torch.exp(torch.arange(0, embed_dim, 2, dtype=torch.float32) * - torch.log(torch.tensor(10000.0))/embed_dim) 
 
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term) 
 
+        # Buffer shape: (1, max_seq_len, E)
         pe = pe.unsqueeze(0)
         self.register_buffer("pe", pe)
 
 
     def forward(self, x):
+        # Input x shape: (B, S, E)
         seq_len = x.size(1)
         assert seq_len <= self.pe.size(1), (
             "Sequence length exceeds "
             "maximum positional encoding length"
         )
+        # Output shape: (B, S, E)
         return x + self.pe[:, :seq_len]
 
 
@@ -43,6 +49,7 @@ def main():
 
     )
 
+    # Demo visualization tensor shape: (max_seq_len, embed_dim)
     encoding = pe.pe.squeeze(0)
 
     plt.imshow(

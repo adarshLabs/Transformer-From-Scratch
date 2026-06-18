@@ -32,12 +32,14 @@ def test_transformer_decoder_pipeline_forward_and_backward():
             [3, 4, 8, 12, 16],
         ]
     )
+    # target_ids shape: (batch_size, target_seq_len)
     source_ids = torch.tensor(
         [
             [2, 6, 10, 14, 0, 0],
             [1, 5, 9, 13, 17, 21],
         ]
     )
+    # source_ids shape: (batch_size, source_seq_len)
 
     target_embedding = nn.Embedding(vocab_size, embed_dim)
     source_embedding = nn.Embedding(vocab_size, embed_dim)
@@ -52,17 +54,22 @@ def test_transformer_decoder_pipeline_forward_and_backward():
 
     target_x = target_position(target_embedding(target_ids))
     encoder_output = source_position(source_embedding(source_ids))
+    # target_x shape: (batch_size, target_seq_len, embed_dim)
+    # encoder_output shape: (batch_size, source_seq_len, embed_dim)
 
     self_attention_mask = combined_mask(
         causal_mask(target_seq_len, device=target_ids.device),
         padding_mask(target_ids, padding_token=padding_token),
     )
     cross_attention_mask = padding_mask(source_ids, padding_token=padding_token)
+    # self_attention_mask shape: (batch_size, 1, target_seq_len, target_seq_len)
+    # cross_attention_mask shape: (batch_size, 1, 1, source_seq_len)
 
     _, self_attention_weights = decoder_block.self_attention(
         query=decoder_block.norm1(target_x),
         mask=self_attention_mask,
     )
+    # self_attention_weights shape: (batch_size, num_heads, target_seq_len, target_seq_len)
     assert self_attention_weights.shape == (
         batch_size,
         num_heads,
@@ -78,6 +85,7 @@ def test_transformer_decoder_pipeline_forward_and_backward():
         value=encoder_output,
         mask=cross_attention_mask,
     )
+    # cross_attention_weights shape: (batch_size, num_heads, target_seq_len, source_seq_len)
     assert cross_attention_weights.shape == (
         batch_size,
         num_heads,
@@ -92,6 +100,7 @@ def test_transformer_decoder_pipeline_forward_and_backward():
         self_attention_mask,
         cross_attention_mask,
     )
+    # output shape: (batch_size, target_seq_len, embed_dim)
 
     assert output.shape == (batch_size, target_seq_len, embed_dim)
     assert torch.isfinite(output).all()

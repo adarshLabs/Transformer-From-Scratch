@@ -31,6 +31,7 @@ def test_transformer_encoder_pipeline_forward_and_backward():
             [3, 4, 8, 12, 16, 20],
         ]
     )
+    # input_ids shape: (batch_size, seq_len)
 
     token_embedding = nn.Embedding(vocab_size, embed_dim)
     encoder_block = TransformerEncoderBlock(
@@ -41,20 +42,25 @@ def test_transformer_encoder_pipeline_forward_and_backward():
     )
 
     x = token_embedding(input_ids)
+    # x shape: (batch_size, seq_len, embed_dim)
 
     mask = padding_mask(input_ids, padding_token=padding_token)
+    # mask shape: (batch_size, 1, 1, seq_len)
 
     normalized_x = encoder_block.norm1(x)
     q = encoder_block.attention.q_proj(normalized_x)
     k = encoder_block.attention.k_proj(normalized_x)
     v = encoder_block.attention.v_proj(normalized_x)
+    # q, k, and v shapes before split: (batch_size, seq_len, embed_dim)
 
     q = encoder_block.attention.split_head(q)
     k = encoder_block.attention.split_head(k)
     v = encoder_block.attention.split_head(v)
+    # q, k, and v shapes after split: (batch_size, num_heads, seq_len, head_dim)
 
     rotary_embedding = RotaryPositionalEmbedding(encoder_block.attention.head_dim)
     q_rot, k_rot = rotary_embedding.apply_rotary(q, k)
+    # q_rot and k_rot shapes: (batch_size, num_heads, seq_len, head_dim)
 
     assert q_rot.shape == q.shape
     assert k_rot.shape == k.shape
@@ -67,7 +73,10 @@ def test_transformer_encoder_pipeline_forward_and_backward():
         v,
         mask,
     )
+    # attention_output shape: (batch_size, num_heads, seq_len, head_dim)
+    # attention_weights shape: (batch_size, num_heads, seq_len, seq_len)
     attention_output = encoder_block.attention.combine_heads(attention_output)
+    # attention_output shape after combine: (batch_size, seq_len, embed_dim)
     attention_output = encoder_block.attention.out_proj(attention_output)
 
     assert attention_output.shape == (batch_size, seq_len, embed_dim)
@@ -75,6 +84,7 @@ def test_transformer_encoder_pipeline_forward_and_backward():
     assert torch.all(attention_weights[0, :, :, 4:] == 0)
 
     output = encoder_block(x, mask)
+    # output shape: (batch_size, seq_len, embed_dim)
 
     assert output.shape == (batch_size, seq_len, embed_dim)
     assert torch.isfinite(output).all()

@@ -6,15 +6,20 @@ class LearnedPositionalEmbedding(nn.Module):
     def __init__(self, embed_dim, max_seq_len=512):
         super().__init__()
 
+        # Embedding table shape: (max_seq_len, E)
         self.position_embedding = nn.Embedding(max_seq_len, embed_dim)
 
     def forward(self, x):
+        # Input x shape: (B, S, E)
         _, seq_len, _ = x.shape
 
+        # Position ids shape: (1, S)
         position = torch.arange(0, seq_len, device=x.device).unsqueeze(0)
 
+        # Positional embedding shape: (1, S, E)
         positional_embedding = self.position_embedding(position)
 
+        # Output shape: (B, S, E)
         return x + positional_embedding
     
 def main():
@@ -23,6 +28,7 @@ def main():
     seq_len = 16
     max_seq_len = 5000
     embed_dim = 128
+    # Demo input shape: (batch_size, seq_len, embed_dim)
     x = torch.rand(batch_size, seq_len, embed_dim)
 
     positional_embedding = LearnedPositionalEmbedding(max_seq_len, embed_dim)
