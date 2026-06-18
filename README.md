@@ -1,9 +1,10 @@
-# GPT-2 Implementation
+# Transformer From Scratch
 
-A from-scratch PyTorch implementation of core GPT-2 building blocks. The
-repository currently focuses on attention, positional encoding, and transformer
-block components, with small runnable demos and tests for attention, encoder
-pipeline behavior, and decoder cross-attention behavior.
+A from-scratch PyTorch implementation of transformer building blocks,
+encoder/decoder modules, and a growing path toward a GPT-2 style decoder-only
+language model. The repository currently focuses on attention, positional
+encoding, and transformer block components, with small runnable demos and tests
+for attention, encoder pipeline behavior, and decoder cross-attention behavior.
 
 ## Current Components
 
@@ -126,5 +127,5 @@ python3 -m pytest
 
 ## Notes
 
-The full GPT-2 model stack, tokenizer integration, training loop, and text
-generation entry point are not implemented yet.
+The GPT-2 style decoder-only model stack, tokenizer integration, training loop,
+and text generation entry point are not implemented yet.
