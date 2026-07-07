@@ -43,13 +43,3 @@ class TransformerEncoderBlock(nn.Module):
         # Output shape: (B, S, E)
         return x
     
-
-def main():
-    batch_size=2
-    seq_len=10
-    d_model=64
-    num_heads = 4
-
-
-if __name__=="__main__":
-    main()
