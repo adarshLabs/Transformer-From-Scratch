@@ -98,6 +98,18 @@ Run the transformer encoder end-to-end test:
 PYTHONPATH=. python3 transformer_models/tests/test_tranformer_encoder_end_to_end.py
 ```
 
+Run the GPT-2 style decoder demo:
+
+```bash
+python3 transformer_models/gpt2.py
+```
+
+The decoder demo now verifies
+- end-to-end GPT2 forward pass
+- attention mask construction
+- generation sampling with top-k and temperature
+- finite loss computation for a random token batch
+
 Compile all current Python files:
 
 ```bash

@@ -7,7 +7,8 @@ class GPTDecoderBlock(nn.Module):
     def __init__(self, embed_dim, num_heads, expansion_factor=4, dropout=0.1):
 
         super().__init__()
-        rope = RotaryPositionalEmbedding(num_heads)
+        head_dim = embed_dim // num_heads
+        rope = RotaryPositionalEmbedding(head_dim)
         self.self_attention = MultiHeadAttention(embed_dim, num_heads=num_heads, dropout=dropout, qk_positional_encoding=rope)
         self.ffn = FeedForwardNetwork(embed_dim=embed_dim, expansion_factor=4, dropout=dropout)
         self.norm1 = nn.LayerNorm(embed_dim)
@@ -17,7 +18,7 @@ class GPTDecoderBlock(nn.Module):
     def forward(self, x, mask=None):
         residual = x
         x = self.norm1(x)
-        attn_out, _ = self.self_attention(x)
+        attn_out, _ = self.self_attention(x, mask=mask)
         x = residual + self.dropout(attn_out)
 
         residual = x
