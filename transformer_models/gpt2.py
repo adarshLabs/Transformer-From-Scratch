@@ -1,13 +1,17 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import torch
 import torch.nn as nn
 from dataclasses import dataclass
-try:
-    from .gpt_decoder_block import GPTDecoderBlock
-except ImportError:
-    from gpt_decoder_block import GPTDecoderBlock
+from transformer_models.gpt_decoder_block import GPTDecoderBlock
 from attention.masking import causal_mask, padding_mask, combined_mask
 import torch.nn.functional as F
-
+import math
 
 @dataclass
 class GPT2Config:
@@ -75,5 +79,51 @@ class GPT2(nn.Module):
         return logits, loss
 
     @torch.no_grad()
-    def generate(self, input_ids, max_new_tokens, temperature=1, top_k=50):
-        pass
+    def generate(self, input_ids, max_new_tokens=100, temperature=0.8, top_k=50):
+        self.eval()
+
+        for _ in range(max_new_tokens):
+            context = input_ids[:, -self.config.block_size:]
+            logits, _ = self(context)
+            logits = logits[:, -1, :]/ temperature
+
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, self.config.vocab_size))
+                logits[logits < v[:,[-1]]] = float('-inf')
+
+            probs = F.softmax(logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            input_ids = torch.cat([input_ids, next_token], dim=-1)
+
+        return input_ids
+    
+def main():
+    config = GPT2Config()
+    model = GPT2(config)
+
+    total = sum(p.numel() for p in model.parameters())
+
+    print(f"Parameters: {total}:,")
+
+    B, S = 2, 32
+
+    input_ids = torch.randint(1, 50257, (B, S))
+    input_ids[0, -3:] = 0                              #add padding to test
+    targets = torch.randint(0, 50257, (B, S))
+
+    logits, loss = model(input_ids, targets)
+
+    print(f"Logits : {logits.shape}    expected ({B}, {S}, {config.vocab_size})")
+    print(f"Loss   : {loss.item():.4f}  expected ~{math.log(config.vocab_size):.2f}")
+
+    seed = torch.randint(1, 50257, (1, 5))
+    out = model.generate(seed, max_new_tokens=20, temperature=0.8, top_k =50)
+
+    print(f"Seed: {seed.shape}, Out: {out.shape}")
+    print("All Checks Passed")
+
+
+if __name__=="__main__":
+    main()
+
+

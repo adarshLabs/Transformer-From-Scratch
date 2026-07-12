@@ -14,15 +14,14 @@ def padding_mask(input_ids, padding_token=0):
     # Base mask shape: (B, S), with True for non-padding tokens.
     mask = (input_ids != padding_token)
 
-    mask = mask.unsqueeze(-1) & mask.unsqueeze(-2)
-
+    # Only mask invalid key positions. Broadcast across query positions.
     # Output shape: (B, 1, 1, S), broadcast over heads and query positions.
-    return mask.unsqueeze(1)
+    return mask.unsqueeze(1).unsqueeze(2)
 
 
 def combined_mask(causal_mask, padding_mask):
     # causal_mask shape: (1, 1, S, S)
-    # padding_mask shape: (B, 1, 1, S)
+    # padding_mask shape: (B, 1, S, S)
     # Output shape: (B, 1, S, S)
     return causal_mask & padding_mask
 
