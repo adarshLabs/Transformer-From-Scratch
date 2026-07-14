@@ -56,8 +56,9 @@ class GPT2(nn.Module):
 
     def _build_mask(self, input_ids):
         B, S = input_ids.shape
+        device = input_ids.device
 
-        causal = causal_mask(S)
+        causal = causal_mask(S, device=device)
         padding = padding_mask(input_ids, padding_token=self.config.padding_token)
         return combined_mask(causal, padding)
     
