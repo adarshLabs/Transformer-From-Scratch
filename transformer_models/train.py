@@ -2,9 +2,9 @@ from gpt2 import GPT2, GPT2Config
 import torch
 
 # Training hyperparameters
-MAX_STEPS = 250
+MAX_STEPS = 251
 BATCH_SIZE = 8
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 3e-4
 
 
 def get_batch(data, block_size, batch_size, device):
@@ -17,7 +17,7 @@ def get_batch(data, block_size, batch_size, device):
 
 def train(model, data, block_size, device):
     model.train()
-    optimiser = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimiser = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
     for step in range(MAX_STEPS):
         x, y = get_batch(data, block_size, BATCH_SIZE, device)
