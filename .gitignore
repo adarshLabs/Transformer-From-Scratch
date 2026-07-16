@@ -206,6 +206,13 @@ tempCodeRunnerFile.py
 # Ruff stuff:
 .ruff_cache/
 
+# Local training artifacts and model checkpoints
+checkpoint/
+*.pt
+
+# MacOS
+.DS_Store
+
 # PyPI configuration file
 .pypirc
 
