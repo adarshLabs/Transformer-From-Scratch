@@ -22,7 +22,7 @@ class GPT2Config:
     block_size: int = 256
     expansion_factor: int = 4
     dropout: float = 0.1
-    padding_token: int = 0
+    padding_token: int = -11
 
 class GPT2(nn.Module):
     def __init__(self, config):
@@ -73,6 +73,7 @@ class GPT2(nn.Module):
 
         x = self.final_norm(x)
         logits = self.lm_head(x)
+        #print(input_ids)
         loss = None
         if target is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), target.view(-1))
@@ -81,9 +82,11 @@ class GPT2(nn.Module):
 
     @torch.no_grad()
     def generate(self, input_ids, max_new_tokens=100, temperature=0.8, top_k=50):
+
         self.eval()
 
         for _ in range(max_new_tokens):
+
             context = input_ids[:, -self.config.block_size:]
             logits, _ = self(context)
             logits = logits[:, -1, :]/ temperature
@@ -93,6 +96,7 @@ class GPT2(nn.Module):
                 logits[logits < v[:,[-1]]] = float('-inf')
 
             probs = F.softmax(logits, dim=-1)
+
             next_token = torch.multinomial(probs, num_samples=1)
             input_ids = torch.cat([input_ids, next_token], dim=-1)
 
