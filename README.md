@@ -97,6 +97,10 @@ If pytest is available, you can run the test suite with:
 python3 -m pytest
 ```
 
+## Contributing
+
+Contributions are welcome. If you want to improve the implementation, please open an issue or submit a pull request with a clear description of the change and any relevant tests.
+
 ## Notes
 
 This repository is best suited for educational use and experimentation with transformer internals.
