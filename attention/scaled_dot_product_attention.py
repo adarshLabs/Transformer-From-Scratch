@@ -15,7 +15,7 @@ class ScaledDotProductAttention(nn.Module):
         dim = Q.size(-1)
         # scores shape: (B, H, S_q, S_k)
         scores = torch.matmul(Q, K.transpose(-2, -1))
-        scaling_factor = dim**0.5
+        scaling_factor = dim ** 0.5
         scores = scores/scaling_factor
         
         if mask is not None:

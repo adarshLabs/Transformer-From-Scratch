@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from attention.masking import causal_mask, combined_mask, padding_mask
-from transformer_models.gpt_decoder_block import GPTDecoderBlock
+from transformer_blocks.gpt_decoder_block import GPTDecoderBlock
 
 @dataclass
 class GPT2Config:
@@ -23,7 +23,7 @@ class GPT2Config:
     block_size: int = 256
     expansion_factor: int = 4
     dropout: float = 0.1
-    padding_token: int = -11
+    padding_token: int = -1
 
 class GPT2(nn.Module):
     def __init__(self, config):

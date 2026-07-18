@@ -1,13 +1,23 @@
-from gpt2 import GPT2, GPT2Config
+import math
+import os
+import sys
+from pathlib import Path
+
 import torch
-import math, os
 import matplotlib.pyplot as plt
+import tiktoken
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from transformer_models.gpt2 import GPT2, GPT2Config
 from tokenizer.charactor_tokenizer import CharacterTokenizer
 
 # Training hyperparameters
 MAX_STEPS = 2000
 LOG_EVERY = 100
-WARMUP_STEPS = 50
+WARMUP_STEPS = 100
 MAX_LR = 3e-4
 MIN_LR = 3e-5
 MAX_NORM = 1.0
@@ -100,7 +110,7 @@ def train(model, data, block_size, decode, device):
 
             model.eval()
             seed = torch.zeros((1,1), dtype=torch.long, device=device)
-            out = model.generate(seed,max_new_tokens=200, temperature=0.8, top_k=40)
+            out = model.generate(seed, max_new_tokens=200, temperature=0.8, top_k=40)
             print(f"--- Text Generated at {step} ---")
             print(decode(out[0].tolist()))
             model.train()
@@ -146,12 +156,18 @@ def main():
 
     path = "data/tiny_shakespeare.txt"
     text = load_data(path)
-    tokenizer = CharacterTokenizer(text)
+
+    # Character level tokenizer
+    # tokenizer = CharacterTokenizer(text)   
+
+
+    # Subword level BPE tokenizer   
+    tokenizer = tiktoken.get_encoding('gpt2')               
     data = torch.tensor(tokenizer.encode(text), dtype=torch.long, device=device)
 
 
 
-    config.vocab_size = tokenizer.vocab_size
+    config.vocab_size = tokenizer.n_vocab
     model = GPT2(config).to(device)
 
     n = int(0.9 * len(data))

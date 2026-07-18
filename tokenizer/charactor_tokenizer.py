@@ -3,7 +3,7 @@ class CharacterTokenizer:
     def __init__(self, text):
         chars = sorted(set(text))
 
-        self.vocab_size = len(chars)
+        self.n_vocab = len(chars)
         self.stoi = {ch: i for i, ch in enumerate(chars)}
         self.itos = {i: ch for i, ch in enumerate(chars)}
 
