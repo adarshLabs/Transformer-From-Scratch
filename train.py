@@ -52,6 +52,7 @@ def sanity_check(model, block_size, device):
     x = torch.randint(0, vocab_size, (4, block_size), device=device)
     y = torch.randint(0, vocab_size, (4, block_size), device=device)
  
+ 
     loss_history = []
     for step in range(200):
         logits, loss = model(x, y)
