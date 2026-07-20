@@ -22,9 +22,9 @@ class RotaryPositionalEmbedding(nn.Module):
         inv_freq= 1.0/ (base ** (torch.arange(0, dim, 2).float()/dim))
         self.register_buffer( "inv_freq", inv_freq)
 
-    def get_cos_sin(self, seq_len, device):
+    def get_cos_sin(self, seq_len, device, offset=0):
         # positions shape: (S)
-        positions = torch.arange(0, seq_len, device=device).float()
+        positions = torch.arange(offset, offset+seq_len, device=device).float()
 
         # freq shape: (S, D / 2), emb shape after repeat: (S, D)
         freq = torch.outer(positions, self.inv_freq)
@@ -34,12 +34,12 @@ class RotaryPositionalEmbedding(nn.Module):
         sin = emb.sin()[None, None, :, :]
         return cos, sin
     
-    def apply_rotary(self, q, k):
+    def apply_rotary(self, q, k, offset=0):
         # Input q and k shapes: (B, H, S, D)
 
         seq_len = q.shape[2]
 
-        cos, sin = self.get_cos_sin(seq_len, q.device)
+        cos, sin = self.get_cos_sin(seq_len, q.device, offset=offset)
 
         q_rot = q * cos + (rotate_half(q) * sin)
         k_rot = k* cos + (rotate_half(k) * sin)
