@@ -20,7 +20,7 @@ class GPT2Config:
     n_heads: int = 6
     d_model: int = 384
     vocab_size: int = 50257
-    block_size: int = 256
+    block_size: int = 1024
     expansion_factor: int = 4
     dropout: float = 0.1
     padding_token: int = -1
@@ -106,6 +106,7 @@ class GPT2(nn.Module):
 
         for _ in range(max_new_tokens):
 
+
             logits, _, past_key_values = self(context, past_key_values=past_key_values, use_cache=use_cache)
             logits = logits[:, -1, :] / temperature
 
@@ -117,7 +118,9 @@ class GPT2(nn.Module):
 
             next_token = torch.multinomial(probs, num_samples=1)
             input_ids = torch.cat([input_ids, next_token], dim=-1)
-            context = next_token
+
+            context = (next_token if use_cache else input_ids)
+
 
         return input_ids
     

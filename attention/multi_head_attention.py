@@ -57,25 +57,28 @@ class MultiHeadAttention(nn.Module):
         K = self.k_proj(key)
         V = self.v_proj(value)
 
-        past_len = 0
-        if past_kv is not None:
-            K_cache, V_cache = past_kv
-            past_len = K_cache.shape[1]
-            K = torch.cat([K_cache, K], dim=1)
-            V = torch.cat([V_cache, V], dim=1)
-        
-        new_kv = (K, V)
         # Split projection shapes: (B, H, S_q, D), (B, H, S_k, D), (B, H, S_k, D)
         Q_split = self.split_head(Q)
         K_split = self.split_head(K)
         V_split = self.split_head(V)
 
+        past_len = 0
+        if past_kv is not None:
+            K_cache, V_cache = past_kv
+            past_len = K_cache.shape[2]
+
         if self.qk_positional_encoding is not None:
             Q_split, K_split = self.qk_positional_encoding.apply_rotary(Q_split, K_split, offset=past_len)
 
-        attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
+        if past_kv is not None:
+            K_split = torch.cat([K_cache, K_split], dim=2)
+            V_split = torch.cat([V_cache, V_split], dim=2)
+
+        new_kv = (K_split, V_split)
 
         # attn_output shape: (B, H, S_q, D), attn_weights shape: (B, H, S_q, S_k)
+        attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
+
         concatenated_output = self.combine_heads(attn_output)
         output = self.out_proj(concatenated_output)
 

@@ -10,7 +10,7 @@ class GPTDecoderBlock(nn.Module):
         head_dim = embed_dim // num_heads
         rope = RotaryPositionalEmbedding(head_dim)
         self.self_attention = MultiHeadAttention(embed_dim, num_heads=num_heads, dropout=dropout, qk_positional_encoding=rope)
-        self.ffn = FeedForwardNetwork(embed_dim=embed_dim, expansion_factor=4, dropout=dropout)
+        self.ffn = FeedForwardNetwork(embed_dim=embed_dim, expansion_factor=expansion_factor, dropout=dropout)
         self.norm1 = nn.LayerNorm(embed_dim)
         self.norm2 = nn.LayerNorm(embed_dim)
         self.dropout = nn.Dropout(dropout)

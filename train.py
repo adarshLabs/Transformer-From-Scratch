@@ -54,7 +54,7 @@ def sanity_check(model, block_size, device):
  
     loss_history = []
     for step in range(200):
-        logits, loss = model(x, y)
+        logits, loss, _ = model(x, y)
  
         optimizer.zero_grad()
         loss.backward()
@@ -92,7 +92,7 @@ def train(model, data, block_size, decode, device):
             param_group["lr"] = lr
 
         x, y = get_batch(data, block_size, BATCH_SIZE, device)
-        _, loss = model(x, y)
+        _, loss, _ = model(x, y)
 
         optimiser.zero_grad()
         loss.backward()
@@ -140,7 +140,7 @@ def validation(model, val_data, block_size, batch_size, device):
     with torch.no_grad():
         for _ in range(NUM_VAL_BATCHES):
             x, y = get_batch(val_data, block_size, batch_size, device=device)
-            logits, loss = model(x, y)
+            logits, loss, _ = model(x, y)
 
             val_loss_history.append(loss.item())
 
