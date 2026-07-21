@@ -98,7 +98,7 @@ class GPT2(nn.Module):
         return logits, loss, None
 
     @torch.no_grad()
-    def generate(self, input_ids, max_new_tokens=100, temperature=0.8, top_k=50, use_cache=False):
+    def generate(self, input_ids, max_new_tokens=100, temperature=0.8, top_k=None, use_cache=False, top_p=None):
         assert max_new_tokens + input_ids.shape[1]<= self.config.block_size
         self.eval()
         past_key_values = None
@@ -113,6 +113,16 @@ class GPT2(nn.Module):
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, self.config.vocab_size))
                 logits[logits < v[:, [-1]]] = float("-inf")
+
+            if top_p is not None:
+                sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+                sorted_probs = F.softmax(sorted_logits, dim=-1)
+                cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+                sorted_logits[cumulative_probs - sorted_probs>top_p]=float('-inf')
+                logits = torch.zeros_like(logits).scatter_(1, sorted_idx, sorted_logits)
+
+
+
 
             probs = F.softmax(logits, dim=-1)
 
