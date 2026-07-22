@@ -13,6 +13,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from attention.masking import causal_mask, combined_mask, padding_mask
 from transformer_blocks.gpt_decoder_block import GPTDecoderBlock
+import gc
+import torch
+
+gc.collect()
+torch.mps.empty_cache()
+
 
 @dataclass
 class GPT2Config:
@@ -20,7 +26,7 @@ class GPT2Config:
     n_heads: int = 6
     d_model: int = 384
     vocab_size: int = 50257
-    block_size: int = 1024
+    block_size: int = 256
     expansion_factor: int = 4
     dropout: float = 0.1
     padding_token: int = -1
@@ -154,7 +160,7 @@ def main():
     print(f"Loss   : {loss.item():.4f}  expected ~{math.log(config.vocab_size):.2f}")
 
     seed = torch.randint(1, 50257, (1, 5))
-    out = model.generate(seed, max_new_tokens=20, temperature=0.8, top_k=50, use_cache=True)
+    out = model.generate(seed, max_new_tokens=20, temperature=0.8, top_k=50, top_p=0.9, use_cache=True)
 
     print(f"Seed: {seed.shape}, Out: {out.shape}")
     print("All Checks Passed")

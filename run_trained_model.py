@@ -25,12 +25,12 @@ def main():
         
         torch.manual_seed(0)
         t0 = time.perf_counter()
-        out1 = model.generate(query, max_new_tokens=1000, temperature=0.8, top_k=10, use_cache=False)     #without kv cache
+        out1 = model.generate(query, max_new_tokens=200, temperature=0.8, top_k=10, use_cache=False)     #without kv cache
         t1 = time.perf_counter()
 
         torch.manual_seed(0)
         t2 = time.perf_counter()
-        out2 = model.generate(query, max_new_tokens=1000, temperature=0.8, top_k=10, use_cache=True)  #with kv cache
+        out2 = model.generate(query, max_new_tokens=200, temperature=0.8, top_k=10, use_cache=True)  #with kv cache
         t3 = time.perf_counter()
 
         result1 = tokenizer.decode(out1[0].tolist())
