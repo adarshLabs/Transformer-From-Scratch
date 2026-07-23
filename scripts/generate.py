@@ -1,12 +1,18 @@
 
-from transformer_models.gpt2 import GPT2, GPT2Config
-from train import load_data
-from tokenizer.charactor_tokenizer import CharacterTokenizer
 import torch
 import tiktoken
 import time
 
+import sys
+from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from transformer_models.gpt2 import GPT2, GPT2Config
+from scripts.train import load_data
+from tokenizer.character_tokenizer import CharacterTokenizer
 def main():
     tokenizer = tiktoken.get_encoding("gpt2")
 
@@ -39,8 +45,8 @@ def main():
         print(f"With cache: {t3-t2:.3f}s")
         print(f"Speedup: {(t1-t0)/(t3-t2):.2f}")
 
-        print(f"---Answer 1---\n{result1}")
-        print(f"---Answer 2---\n{result2}")
+        print(f"---Generated Text 1---\n{result1}\n\n")
+        print(f"---Generated Text 2---\n{result2}")
 
 
 if __name__=="__main__":

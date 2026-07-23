@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from transformer_models.gpt2 import GPT2, GPT2Config
-from tokenizer.charactor_tokenizer import CharacterTokenizer
+from tokenizer.character_tokenizer import CharacterTokenizer
 
 # Training hyperparameters
 MAX_STEPS = 2000
