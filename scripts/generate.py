@@ -13,6 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from transformer_models.gpt2 import GPT2, GPT2Config
 from scripts.train import load_data
 from tokenizer.character_tokenizer import CharacterTokenizer
+
 def main():
     tokenizer = tiktoken.get_encoding("gpt2")
 
@@ -21,6 +22,11 @@ def main():
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     model = GPT2(config).to(device)
     model.load_state_dict(torch.load("checkpoint/gpt2_step2000.pt", map_location=device))
+
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total Parameters     : {total_params:,}")
+    print(f"Trainable Parameters : {trainable_params:,}")
 
     model.eval()
     with torch.no_grad():
@@ -45,8 +51,8 @@ def main():
         print(f"With cache: {t3-t2:.3f}s")
         print(f"Speedup: {(t1-t0)/(t3-t2):.2f}")
 
-        print(f"---Generated Text 1---\n{result1}\n\n")
-        print(f"---Generated Text 2---\n{result2}")
+        print(f"\n\n---Generated Text 1---\n{result1}")
+        print(f"\n\n---Generated Text 2---\n{result2}")
 
 
 if __name__=="__main__":
