@@ -13,11 +13,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from attention.masking import causal_mask, combined_mask, padding_mask
 from transformer_blocks.gpt_decoder_block import GPTDecoderBlock
-import gc
 import torch
 
-gc.collect()
-torch.mps.empty_cache()
+
 
 
 @dataclass
