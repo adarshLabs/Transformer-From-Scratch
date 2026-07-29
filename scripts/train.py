@@ -89,7 +89,6 @@ def get_lr(step, warmup_steps, max_lr, min_lr, max_steps):
 def train(
     model,
     data,
-    block_size,
     decode,
     device,
     args,
@@ -103,7 +102,7 @@ def train(
         for param_group in optimiser.param_groups:
             param_group["lr"] = lr
 
-        x, y = get_batch(data, block_size, args.batch_size, device)
+        x, y = get_batch(data, args.block_size, args.batch_size, device)
         _, loss, _ = model(x, y)
 
         optimiser.zero_grad()
@@ -143,12 +142,12 @@ def train(
     # plt.legend()
     # plt.show()
 
-def validation(model, val_data, block_size, device, args):
+def validation(model, val_data, device, args):
     model.eval()
     val_loss_history = []
     with torch.no_grad():
         for _ in range(args.num_val_batches):
-            x, y = get_batch(val_data, block_size, args.batch_size, device=device)
+            x, y = get_batch(val_data, args.block_size, args.batch_size, device=device)
             logits, loss, _ = model(x, y)
 
             val_loss_history.append(loss.item())
@@ -170,7 +169,6 @@ def main():
     else:
         device = torch.device("cpu")
 
-    print(device)
     print(f"Using device: {device}")
           
     # for local files
@@ -199,7 +197,6 @@ def main():
     train(
         model,
         train_data,
-        config.block_size,
         tokenizer.decode,
         device,
         args,
@@ -208,7 +205,6 @@ def main():
     validation(
         model=model,
         val_data=val_data,
-        block_size=config.block_size,
         device=device,
         args=args,
     )
