@@ -8,7 +8,7 @@ def causal_mask(seq_len, device=None):
     # Output shape: (1, 1, S, S), broadcast over batch and heads.
     return mask.bool().unsqueeze(0).unsqueeze(1)
 
-def padding_mask(input_ids, padding_token=0):
+def padding_mask(input_ids, padding_token=-1):
     # input_ids shape: (B, S)
 
     # Base mask shape: (B, S), with True for non-padding tokens.

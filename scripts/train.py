@@ -4,11 +4,13 @@ import os
 import pickle
 import sys
 from pathlib import Path
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tiktoken
+from torch.utils.tensorboard import SummaryWriter
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -119,14 +121,17 @@ def validation(model, val_data, device, args):
 
 
 def train(model, train_data, val_data, tokenizer, device, args, config):
+    raw_model = model
     model.train()
-    os.makedirs("checkpoint", exist_ok=True)
+    writer = SummaryWriter(f"runs/{args.dataset}")
+    ckpt_dir = f"checkpoint/{args.dataset}"
+    os.makedirs(ckpt_dir, exist_ok=True)
     optimiser = torch.optim.AdamW(model.parameters(), lr=args.max_lr, weight_decay=0.1)
     start_step = 0
     best_val_loss = float("inf")
     if args.resume is not None:
         print(f"Loading checkpoint: {args.resume}")
-        ckpt = torch.load(args.resume, map_location=device)
+        ckpt = torch.load(args.resume, map_location=device, weights_only=False)
         model.load_state_dict(ckpt["model"])
         optimiser.load_state_dict(ckpt["optimizer"])
         start_step = ckpt["step"] + 1
@@ -134,9 +139,16 @@ def train(model, train_data, val_data, tokenizer, device, args, config):
         print(f"Resuming from step {start_step}")
     if device.type == "cuda":
         model = torch.compile(model)
-    lr_history = []
-    loss_history = []
-    for step in range(start_step, args.max_steps):
+
+    
+    train_start = time.time()
+    if start_step==0:
+        print("Running initial validation...")
+        best_val_loss = validation(model, val_data, device, args)
+    writer.add_scalar("Loss/validation", best_val_loss, 0)
+    writer.add_scalar("Perplexity/validation", math.exp(best_val_loss),0,)
+
+    for step in range(start_step, args.max_steps+1):
         lr = get_lr(step, args.warmup_steps, args.max_lr, args.min_lr, args.max_steps)
         for param_group in optimiser.param_groups:
             param_group["lr"] = lr
@@ -148,65 +160,67 @@ def train(model, train_data, val_data, tokenizer, device, args, config):
         loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_norm)
         optimiser.step()
-        lr_history.append(float(lr))
-        loss_history.append(float(loss.item()))
-        if step % args.log_every == 0:
-            print(f"step {step:4d} | loss {loss.item():.4f} | lr {lr:.6f} | grad_norm {grad_norm:.3f}")
+
 
         if step % args.save_every == 0 and step > 0:
             val_loss = validation(model, val_data, device, args)
+            writer.add_scalar("Loss/validation", val_loss, step)
+            writer.add_scalar("Perplexity/validation", math.exp(val_loss), step)
             ckpt = {
-                "model": model.state_dict(),
+                "model": raw_model.state_dict(),
                 "optimizer": optimiser.state_dict(),
                 "step": step,
                 "best_val_loss": best_val_loss,
-                "config": vars(config),
+                "config": config.__dict__,
                 "args": vars(args),
             }
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 ckpt["best_val_loss"] = best_val_loss
-                torch.save(ckpt, "checkpoint/best.pt")
+                torch.save(ckpt, f"{ckpt_dir}/best.pt")
 
-            torch.save(ckpt, "checkpoint/latest.pt")
+            torch.save(ckpt, f"{ckpt_dir}/latest.pt")
 
-            model.eval()
-            prompt = "Once upon a time"
-            seed = torch.tensor([tokenizer.encode(prompt)], device=device)
-            with torch.no_grad():
-                out = model.generate(seed, max_new_tokens=200, temperature=0.8, top_k=40)
-            print(f"--- Text Generated at {step} ---")
-            print(tokenizer.decode(out[0].tolist()))
-            model.train()
+            # model.eval()
+            # prompt = "Once upon a time"
+            # seed = torch.tensor([tokenizer.encode(prompt)], device=device)
+            # with torch.no_grad():
+            #     out = model.generate(seed, max_new_tokens=200, temperature=0.8, top_k=40)
+            # print(f"--- Text Generated at {step} ---")
+            # print(tokenizer.decode(out[0].tolist()))
+            # model.train()
+
+        if step % args.log_every == 0:
+
+            writer.add_scalar("Loss/train", loss.item(), step)
+            writer.add_scalar("LearningRate", lr, step)
+            writer.add_scalar("GradNorm", grad_norm, step)
+
+            elapsed = time.time() - train_start
+            steps_done = step - start_step + 1
+            steps_left = args.max_steps - step - 1
+            sec_per_step = elapsed / steps_done
+            eta = steps_left * sec_per_step
+            print(
+                f"Step {step:6d}/{args.max_steps} | "
+                f"Loss {loss.item():.4f} | "
+                f"Val {best_val_loss:.4f} | "
+                f"ETA {eta/60:.1f} min"
+            )
 
     torch.save(
         {
-            "model": model.state_dict(),
+            "model": raw_model.state_dict(),
             "optimizer": optimiser.state_dict(),
-            "step": args.max_steps,
+            "step": args.max_steps - 1,
             "best_val_loss": best_val_loss,
             "config": config.__dict__,
             "args": vars(args),
         },
-        "checkpoint/final.pt",
+        f"{ckpt_dir}/final.pt",
     )
-
-    # plt.figure(figsize=(8, 4))
-    # plt.plot(range(len(lr_history)), lr_history, label="learning rate")
-    # plt.xlabel("step")
-    # plt.ylabel("learning rate")
-    # plt.title("Learning rate schedule")
-    # plt.legend()
-    # plt.show()
-
-    # plt.figure(figsize=(8, 4))
-    # plt.plot(range(len(loss_history)), loss_history, label="loss")
-    # plt.xlabel("step")
-    # plt.ylabel("loss")
-    # plt.title("Training loss")
-    # plt.legend()
-    # plt.show()
+    writer.close()
 
 
 def main():
