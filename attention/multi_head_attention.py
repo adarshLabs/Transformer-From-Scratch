@@ -43,7 +43,7 @@ class MultiHeadAttention(nn.Module):
         x = x.contiguous().view(B, S, self.embed_dim)
         return x
     
-    def forward(self, query, key=None, value=None, mask = None, past_kv=None):
+    def forward(self, query, key=None, value=None, mask=None, past_kv=None):
         # query shape: (B, S_q, E)
         # key/value shapes: (B, S_k, E); default to query for self-attention.
         # mask shape: broadcastable to (B, H, S_q, S_k).
