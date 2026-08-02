@@ -16,8 +16,6 @@ from transformer_blocks.gpt_decoder_block import GPTDecoderBlock
 import torch
 
 
-
-
 @dataclass
 class GPT2Config:
     n_layers: int = 6
@@ -28,6 +26,7 @@ class GPT2Config:
     expansion_factor: int = 4
     dropout: float = 0.1
     padding_token: int = -1
+
 
 class GPT2(nn.Module):
     def __init__(self, config):
@@ -74,17 +73,16 @@ class GPT2(nn.Module):
         x = self.drop(embedding)
 
         # During generation it has 2 stages : prefill and decode, isdecode=True means prefill=False and vice versa
-        isDecode = (past_key_values is not None)
-
+        isDecode = past_key_values is not None
 
         if isDecode:
             mask = None
         else:
             mask = self._build_mask(input_ids)
 
-        new_kv_values= []
+        new_kv_values = []
         for i, block in enumerate(self.blocks):
-            layer_past_kv = (None if past_key_values is None else past_key_values[i])
+            layer_past_kv = None if past_key_values is None else past_key_values[i]
             x, new_key = block(x, mask=mask, past_kv=layer_past_kv)
 
             if use_cache:
@@ -92,7 +90,7 @@ class GPT2(nn.Module):
 
         x = self.final_norm(x)
         logits = self.lm_head(x)
-        #print(input_ids)
+        # print(input_ids)
         loss = None
         if target is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), target.view(-1))
@@ -102,16 +100,25 @@ class GPT2(nn.Module):
         return logits, loss, None
 
     @torch.no_grad()
-    def generate(self, input_ids, max_new_tokens=100, temperature=0.8, top_k=None, use_cache=False, top_p=None):
-        assert max_new_tokens + input_ids.shape[1]<= self.config.block_size
+    def generate(
+        self,
+        input_ids,
+        max_new_tokens=100,
+        temperature=0.8,
+        top_k=None,
+        use_cache=False,
+        top_p=None,
+    ):
+        assert max_new_tokens + input_ids.shape[1] <= self.config.block_size
         self.eval()
         past_key_values = None
-        context = input_ids[:, -self.config.block_size:]
+        context = input_ids[:, -self.config.block_size :]
 
         for _ in range(max_new_tokens):
 
-
-            logits, _, past_key_values = self(context, past_key_values=past_key_values, use_cache=use_cache)
+            logits, _, past_key_values = self(
+                context, past_key_values=past_key_values, use_cache=use_cache
+            )
             logits = logits[:, -1, :] / temperature
 
             if top_k is not None:
@@ -122,22 +129,19 @@ class GPT2(nn.Module):
                 sorted_logits, sorted_idx = torch.sort(logits, descending=True)
                 sorted_probs = F.softmax(sorted_logits, dim=-1)
                 cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
-                sorted_logits[cumulative_probs - sorted_probs>top_p]=float('-inf')
+                sorted_logits[cumulative_probs - sorted_probs > top_p] = float("-inf")
                 logits = torch.zeros_like(logits).scatter_(1, sorted_idx, sorted_logits)
-
-
-
 
             probs = F.softmax(logits, dim=-1)
 
             next_token = torch.multinomial(probs, num_samples=1)
             input_ids = torch.cat([input_ids, next_token], dim=-1)
 
-            context = (next_token if use_cache else input_ids)
-
+            context = next_token if use_cache else input_ids
 
         return input_ids
-    
+
+
 def main():
     config = GPT2Config()
     model = GPT2(config)
@@ -154,17 +158,19 @@ def main():
 
     logits, loss, _ = model(input_ids, targets)
 
-    print(f"Logits : {logits.shape}    expected ({batch_size}, {seq_len}, {config.vocab_size})")
+    print(
+        f"Logits : {logits.shape}    expected ({batch_size}, {seq_len}, {config.vocab_size})"
+    )
     print(f"Loss   : {loss.item():.4f}  expected ~{math.log(config.vocab_size):.2f}")
 
     seed = torch.randint(1, 50257, (1, 5))
-    out = model.generate(seed, max_new_tokens=20, temperature=0.8, top_k=50, top_p=0.9, use_cache=True)
+    out = model.generate(
+        seed, max_new_tokens=20, temperature=0.8, top_k=50, top_p=0.9, use_cache=True
+    )
 
     print(f"Seed: {seed.shape}, Out: {out.shape}")
     print("All Checks Passed")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
-
-

@@ -6,12 +6,16 @@ import torch.nn as nn
 
 try:
     from attention.masking import causal_mask, combined_mask, padding_mask
-    from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
+    from positional_encoding.learned_positional_embedding import (
+        LearnedPositionalEmbedding,
+    )
     from transformer_blocks.transformer_decoder_block import TransformerDecoderBlock
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[2]))
     from attention.masking import causal_mask, combined_mask, padding_mask
-    from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
+    from positional_encoding.learned_positional_embedding import (
+        LearnedPositionalEmbedding,
+    )
     from transformer_blocks.transformer_decoder_block import TransformerDecoderBlock
 
 
@@ -43,8 +47,12 @@ def test_transformer_decoder_pipeline_forward_and_backward():
 
     target_embedding = nn.Embedding(vocab_size, embed_dim)
     source_embedding = nn.Embedding(vocab_size, embed_dim)
-    target_position = LearnedPositionalEmbedding(embed_dim=embed_dim, max_seq_len=target_seq_len)
-    source_position = LearnedPositionalEmbedding(embed_dim=embed_dim, max_seq_len=source_seq_len)
+    target_position = LearnedPositionalEmbedding(
+        embed_dim=embed_dim, max_seq_len=target_seq_len
+    )
+    source_position = LearnedPositionalEmbedding(
+        embed_dim=embed_dim, max_seq_len=source_seq_len
+    )
     decoder_block = TransformerDecoderBlock(
         embed_dim=embed_dim,
         num_heads=num_heads,

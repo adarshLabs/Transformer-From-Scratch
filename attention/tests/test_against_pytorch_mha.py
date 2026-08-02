@@ -31,7 +31,7 @@ def copy_weights(custom_mha, torch_mha):
 
     custom_mha.out_proj.weight.data.copy_(torch_mha.out_proj.weight.data)
     custom_mha.out_proj.bias.data.copy_(torch_mha.out_proj.bias.data)
-    
+
 
 def test_against_pytorch_mha():
     B = 2
@@ -50,7 +50,9 @@ def test_against_pytorch_mha():
 
     with torch.no_grad():
         # Output shapes: (B, S, E); attention shapes: (B, H, S, S)
-        torch_output, torch_attn = torch_mha(x, x, x, need_weights=True, average_attn_weights=False)
+        torch_output, torch_attn = torch_mha(
+            x, x, x, need_weights=True, average_attn_weights=False
+        )
         custom_output, custom_attn = custom_mha(x)
 
     assert torch.allclose(torch_output, custom_output, atol=1e-5)
@@ -62,5 +64,6 @@ def test_against_pytorch_mha():
 def main():
     test_against_pytorch_mha()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

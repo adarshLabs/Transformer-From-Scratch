@@ -1,4 +1,3 @@
-
 class CharacterTokenizer:
     def __init__(self, text):
         chars = sorted(set(text))
@@ -9,6 +8,6 @@ class CharacterTokenizer:
 
     def encode(self, s):
         return [self.stoi[ch] for ch in s]
-    
+
     def decode(self, l):
         return "".join([self.itos[i] for i in l])

@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
 from positional_encoding.learned_positional_embedding import LearnedPositionalEmbedding
-from positional_encoding.sinusoidal_positional_encoding import SinusoidalPositionalEncoding
+from positional_encoding.sinusoidal_positional_encoding import (
+    SinusoidalPositionalEncoding,
+)
 from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 
 
@@ -27,9 +29,7 @@ class TransformerEncoder(nn.Module):
         use_rotary_positional_encoding = False
         if positional_encoding_type == "rope":
             head_dim = embed_dim // num_heads
-            self.qk_positional_encoding = RotaryPositionalEmbedding(
-                head_dim
-            )
+            self.qk_positional_encoding = RotaryPositionalEmbedding(head_dim)
             use_rotary_positional_encoding = True
             self.input_positional_encoding = None
 

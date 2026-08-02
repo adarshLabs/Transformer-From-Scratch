@@ -6,12 +6,16 @@ import torch.nn as nn
 
 try:
     from attention.masking import padding_mask
-    from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
+    from positional_encoding.rotary_positional_embedding import (
+        RotaryPositionalEmbedding,
+    )
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[2]))
     from attention.masking import padding_mask
-    from positional_encoding.rotary_positional_embedding import RotaryPositionalEmbedding
+    from positional_encoding.rotary_positional_embedding import (
+        RotaryPositionalEmbedding,
+    )
     from transformer_blocks.transformer_encoder_block import TransformerEncoderBlock
 
 

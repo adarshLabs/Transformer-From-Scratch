@@ -137,7 +137,7 @@ def test_decoder_block_shapes():
         x=decoder_input,
         encoder_output=encoder_output,
         self_attention_mask=causal_masking,
-        cross_attention_mask=None
+        cross_attention_mask=None,
     )
 
     # =================================================
@@ -225,7 +225,7 @@ def test_no_nan_values():
         x=x,
         encoder_output=encoder_output,
         self_attention_mask=causal_masking,
-        cross_attention_mask=None
+        cross_attention_mask=None,
     )
 
     # =================================================

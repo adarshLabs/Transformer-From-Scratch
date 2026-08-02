@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class LearnedPositionalEmbedding(nn.Module):
 
     def __init__(self, embed_dim, max_seq_len=512):
@@ -21,7 +22,8 @@ class LearnedPositionalEmbedding(nn.Module):
 
         # Output shape: (B, S, E)
         return x + positional_embedding
-    
+
+
 def main():
 
     batch_size = 2
@@ -36,7 +38,10 @@ def main():
 
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
-    print(f"positional_embedding shape: {positional_embedding.position_embedding.weight.shape}")
+    print(
+        f"positional_embedding shape: {positional_embedding.position_embedding.weight.shape}"
+    )
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

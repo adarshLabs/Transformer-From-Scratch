@@ -6,16 +6,17 @@ try:
 except ImportError:
     from scaled_dot_product_attention import ScaledDotProductAttention
 
+
 class MultiHeadAttention(nn.Module):
 
     def __init__(self, embed_dim, num_heads, dropout=0.1, qk_positional_encoding=None):
         super().__init__()
-        assert embed_dim % num_heads==0
+        assert embed_dim % num_heads == 0
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.dropout = dropout
         # Per-head dimension D = E / H.
-        self.head_dim = (self.embed_dim // self.num_heads)
+        self.head_dim = self.embed_dim // self.num_heads
         self.q_proj = nn.Linear(embed_dim, embed_dim)
         self.k_proj = nn.Linear(embed_dim, embed_dim)
         self.v_proj = nn.Linear(embed_dim, embed_dim)
@@ -33,7 +34,7 @@ class MultiHeadAttention(nn.Module):
         # Output x shape: (B, H, S, D)
         x = x.transpose(1, 2)
         return x
-    
+
     def combine_heads(self, x):
         # Input x shape: (B, H, S, D)
         B, H, S, D = x.shape
@@ -42,7 +43,7 @@ class MultiHeadAttention(nn.Module):
         x = x.transpose(1, 2)
         x = x.contiguous().view(B, S, self.embed_dim)
         return x
-    
+
     def forward(self, query, key=None, value=None, mask=None, past_kv=None):
         # query shape: (B, S_q, E)
         # key/value shapes: (B, S_k, E); default to query for self-attention.
@@ -68,7 +69,9 @@ class MultiHeadAttention(nn.Module):
             past_len = K_cache.shape[2]
 
         if self.qk_positional_encoding is not None:
-            Q_split, K_split = self.qk_positional_encoding.apply_rotary(Q_split, K_split, offset=past_len)
+            Q_split, K_split = self.qk_positional_encoding.apply_rotary(
+                Q_split, K_split, offset=past_len
+            )
 
         if past_kv is not None:
             K_split = torch.cat([K_cache, K_split], dim=2)
@@ -77,7 +80,7 @@ class MultiHeadAttention(nn.Module):
         new_kv = (K_split, V_split)
 
         # attn_output shape: (B, H, S_q, D), attn_weights shape: (B, H, S_q, S_k)
-        attn_output, attn_weights =  self.attention(Q_split, K_split, V_split, mask)
+        attn_output, attn_weights = self.attention(Q_split, K_split, V_split, mask)
 
         concatenated_output = self.combine_heads(attn_output)
         output = self.out_proj(concatenated_output)
@@ -90,18 +93,13 @@ def main():
     # Demo input shape: (B, S, E)
     x = torch.randn(2, 16, 128)
 
-    mha = MultiHeadAttention(
-
-        embed_dim=128,
-
-        num_heads=8
-
-    )
+    mha = MultiHeadAttention(embed_dim=128, num_heads=8)
 
     output, attn = mha(x)
 
     assert output.shape == (2, 16, 128)
     assert attn.shape == (2, 8, 16, 16)
-    
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     main()

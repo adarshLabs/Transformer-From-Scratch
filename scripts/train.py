@@ -21,7 +21,9 @@ from transformer_models.gpt2 import GPT2, GPT2Config
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--max_steps", "--steps", dest="max_steps", type=int, default=2000)
+    parser.add_argument(
+        "--max_steps", "--steps", dest="max_steps", type=int, default=2000
+    )
     parser.add_argument("--log_every", type=int, default=100)
     parser.add_argument("--warmup_steps", type=int, default=100)
     parser.add_argument("--max_lr", type=float, default=3e-4)
@@ -145,15 +147,18 @@ def train(model, train_data, val_data, tokenizer, device, args, config):
     if device.type == "cuda":
         model = torch.compile(model)
 
-    
     train_start = time.time()
-    if start_step==0:
+    if start_step == 0:
         print("Running initial validation...")
         best_val_loss = validation(model, val_data, device, args)
     writer.add_scalar("Loss/validation", best_val_loss, 0)
-    writer.add_scalar("Perplexity/validation", math.exp(best_val_loss),0,)
+    writer.add_scalar(
+        "Perplexity/validation",
+        math.exp(best_val_loss),
+        0,
+    )
 
-    for step in range(start_step, args.max_steps+1):
+    for step in range(start_step, args.max_steps + 1):
         lr = get_lr(step, args.warmup_steps, args.max_lr, args.min_lr, args.max_steps)
         for param_group in optimiser.param_groups:
             param_group["lr"] = lr
@@ -165,7 +170,6 @@ def train(model, train_data, val_data, tokenizer, device, args, config):
         loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_norm)
         optimiser.step()
-
 
         if step % args.save_every == 0 and step > 0:
             val_loss = validation(model, val_data, device, args)
@@ -246,14 +250,15 @@ def main():
     path = Path("data/processed")
     train_data, val_data, meta = load_data(path / args.dataset)
 
-    config = GPT2Config()
-    config.block_size = args.block_size
-    config.vocab_size = meta["vocab_size"]
-    config.n_layers = args.n_layers
-    config.n_heads = args.n_heads
-    config.d_model = args.d_model
-    config.expansion_factor = args.expansion_factor
-    config.dropout = args.dropout
+    config = GPT2Config(
+        vocab_size=meta["vocab_size"],
+        block_size=args.block_size,
+        n_layers=args.n_layers,
+        n_heads=args.n_heads,
+        d_model=args.d_model,
+        expansion_factor=args.expansion_factor,
+        dropout=args.dropout,
+    )
 
     tokenizer = tiktoken.get_encoding(meta["tokenizer"])
     model = GPT2(config).to(device)

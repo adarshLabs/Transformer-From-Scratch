@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from transformer_models.gpt2 import GPT2, GPT2Config
 
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -29,7 +30,7 @@ def main():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-        
+
     ckpt_path = Path("checkpoint") / args.dataset / args.checkpoint
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     print(f"Loaded checkpoint: {ckpt_path.resolve()}")
@@ -39,7 +40,7 @@ def main():
     model = GPT2(config).to(device)
     model.load_state_dict(ckpt["model"])
 
-    meta_path = Path("data/processed")/args.dataset/"meta.pkl"
+    meta_path = Path("data/processed") / args.dataset / "meta.pkl"
     with open(meta_path, "rb") as f:
         meta = pickle.load(f)
     tokenizer = tiktoken.get_encoding(meta["tokenizer"])
@@ -55,15 +56,27 @@ def main():
         query = torch.tensor(tokenizer.encode(seed), dtype=torch.long, device=device)
         if query.dim() == 1:
             query = query.unsqueeze(0)
-        
+
         torch.manual_seed(0)
         t0 = time.perf_counter()
-        out1 = model.generate(query, max_new_tokens=args.max_new_tokens, temperature=args.temperature, top_k=args.top_k, use_cache=False)     #without kv cache
+        out1 = model.generate(
+            query,
+            max_new_tokens=args.max_new_tokens,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            use_cache=False,
+        )  # without kv cache
         t1 = time.perf_counter()
 
         torch.manual_seed(0)
         t2 = time.perf_counter()
-        out2 = model.generate(query, max_new_tokens=args.max_new_tokens, temperature=args.temperature, top_k=args.top_k, use_cache=True)  #with kv cache
+        out2 = model.generate(
+            query,
+            max_new_tokens=args.max_new_tokens,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            use_cache=True,
+        )  # with kv cache
         t3 = time.perf_counter()
 
         result1 = tokenizer.decode(out1[0].tolist())
@@ -76,5 +89,5 @@ def main():
         print(f"\n\n---Generated Text 2---\n{result2}")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

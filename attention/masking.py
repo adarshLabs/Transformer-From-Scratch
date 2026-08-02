@@ -1,5 +1,6 @@
 import torch
 
+
 def causal_mask(seq_len, device=None):
 
     # Base mask shape: (S, S), where future positions are zero.
@@ -8,11 +9,12 @@ def causal_mask(seq_len, device=None):
     # Output shape: (1, 1, S, S), broadcast over batch and heads.
     return mask.bool().unsqueeze(0).unsqueeze(1)
 
+
 def padding_mask(input_ids, padding_token=-1):
     # input_ids shape: (B, S)
 
     # Base mask shape: (B, S), with True for non-padding tokens.
-    mask = (input_ids != padding_token)
+    mask = input_ids != padding_token
 
     # Only mask invalid key positions. Broadcast across query positions.
     # Output shape: (B, 1, 1, S), broadcast over heads and query positions.
@@ -27,14 +29,11 @@ def combined_mask(causal_mask, padding_mask):
 
 
 def main():
-    seq_len= 5
+    seq_len = 5
 
     causal = causal_mask(seq_len)
 
-    input_ids = torch.tensor([
-        [5, 7, 2, 0, 0],
-        [1, 9, 4, 8, 3]
-    ])
+    input_ids = torch.tensor([[5, 7, 2, 0, 0], [1, 9, 4, 8, 3]])
 
     padding = padding_mask(input_ids)
     combined = combined_mask(causal, padding)
@@ -43,8 +42,8 @@ def main():
     print("Padding mask shape: ", padding.shape)
     print("Combined mask shape: ", combined.shape)
 
-    #output, attn = scaled_dot_product_attention(Q, K, V, mask)
+    # output, attn = scaled_dot_product_attention(Q, K, V, mask)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

@@ -15,20 +15,19 @@ class ScaledDotProductAttention(nn.Module):
         dim = Q.size(-1)
         # scores shape: (B, H, S_q, S_k)
         scores = torch.matmul(Q, K.transpose(-2, -1))
-        scaling_factor = dim ** 0.5
-        scores = scores/scaling_factor
-        
-        if mask is not None:
-            scores = scores.masked_fill(mask==0, float('-inf'))
+        scaling_factor = dim**0.5
+        scores = scores / scaling_factor
 
-        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float("-inf"))
+
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         # output shape: (B, H, S_q, D)
         output = torch.matmul(attention_weights, V)
         # attention_weights shape: (B, H, S_q, S_k)
         return output, attention_weights
-        
+
 
 def main():
     batch_size = 10
@@ -48,8 +47,8 @@ def main():
     print("Attention_weights: ", attn_weights.shape)
 
     print(torch.sum(attn_weights, dim=-1))
-    return 
+    return
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

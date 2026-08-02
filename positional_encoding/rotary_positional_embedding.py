@@ -13,18 +13,19 @@ def rotate_half(x):
     # Output shape: (..., D)
     return output.flatten(-2)
 
+
 class RotaryPositionalEmbedding(nn.Module):
 
     def __init__(self, dim, base=10000):
         super().__init__()
         self.dim = dim
         # inv_freq shape: (D / 2)
-        inv_freq= 1.0/ (base ** (torch.arange(0, dim, 2).float()/dim))
-        self.register_buffer( "inv_freq", inv_freq)
+        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer("inv_freq", inv_freq)
 
     def get_cos_sin(self, seq_len, device, offset=0):
         # positions shape: (S)
-        positions = torch.arange(offset, offset+seq_len, device=device).float()
+        positions = torch.arange(offset, offset + seq_len, device=device).float()
 
         # freq shape: (S, D / 2), emb shape after repeat: (S, D)
         freq = torch.outer(positions, self.inv_freq)
@@ -33,7 +34,7 @@ class RotaryPositionalEmbedding(nn.Module):
         cos = emb.cos()[None, None, :, :]
         sin = emb.sin()[None, None, :, :]
         return cos, sin
-    
+
     def apply_rotary(self, q, k, offset=0):
         # Input q and k shapes: (B, H, S, D)
 
@@ -42,7 +43,7 @@ class RotaryPositionalEmbedding(nn.Module):
         cos, sin = self.get_cos_sin(seq_len, q.device, offset=offset)
 
         q_rot = q * cos + (rotate_half(q) * sin)
-        k_rot = k* cos + (rotate_half(k) * sin)
+        k_rot = k * cos + (rotate_half(k) * sin)
 
         # Output q_rot and k_rot shapes: (B, H, S, D)
         return q_rot, k_rot
