@@ -68,6 +68,20 @@ class GPT2(nn.Module):
         padding = padding_mask(input_ids, padding_token=self.config.padding_token)
         return combined_mask(causal, padding)
 
+    def _truncate_past_key_values(self, past_key_values):
+        if past_key_values is None:
+            return None
+
+        truncated = []
+        for layer_past in past_key_values:
+            key_cache, value_cache = layer_past
+            if key_cache.size(2) > self.config.block_size:
+                key_cache = key_cache[:, :, -self.config.block_size :, :]
+                value_cache = value_cache[:, :, -self.config.block_size :, :]
+            truncated.append((key_cache, value_cache))
+
+        return truncated
+
     def forward(self, input_ids, target=None, past_key_values=None, use_cache=False):
         embedding = self.token_embedding(input_ids)
         x = self.drop(embedding)
@@ -109,15 +123,21 @@ class GPT2(nn.Module):
         use_cache=False,
         top_p=None,
     ):
-        assert max_new_tokens + input_ids.shape[1] <= self.config.block_size
         self.eval()
         past_key_values = None
         context = input_ids[:, -self.config.block_size :]
 
         for _ in range(max_new_tokens):
+            if use_cache:
+                past_key_values = self._truncate_past_key_values(past_key_values)
+                step_input = context
+            else:
+                step_input = input_ids[:, -self.config.block_size :]
 
             logits, _, past_key_values = self(
-                context, past_key_values=past_key_values, use_cache=use_cache
+                step_input,
+                past_key_values=past_key_values,
+                use_cache=use_cache,
             )
             logits = logits[:, -1, :] / temperature
 
@@ -137,7 +157,7 @@ class GPT2(nn.Module):
             next_token = torch.multinomial(probs, num_samples=1)
             input_ids = torch.cat([input_ids, next_token], dim=-1)
 
-            context = next_token if use_cache else input_ids
+            context = next_token if use_cache else input_ids[:, -self.config.block_size :]
 
         return input_ids
 

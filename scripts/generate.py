@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--max_new_tokens", type=int, default=200)
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top_k", type=int, default=10)
+    parser.add_argument("--top_p", type=float, default=None)
     args = parser.parse_args()
 
     if torch.cuda.is_available():
@@ -64,6 +65,7 @@ def main():
             max_new_tokens=args.max_new_tokens,
             temperature=args.temperature,
             top_k=args.top_k,
+            top_p=args.top_p,
             use_cache=False,
         )  # without kv cache
         t1 = time.perf_counter()
@@ -75,6 +77,7 @@ def main():
             max_new_tokens=args.max_new_tokens,
             temperature=args.temperature,
             top_k=args.top_k,
+            top_p=args.top_p,
             use_cache=True,
         )  # with kv cache
         t3 = time.perf_counter()
