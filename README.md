@@ -105,8 +105,27 @@ The preprocessing script also supports TinyStories from Hugging Face:
 
 ```bash
 python3 scripts/preprocess.py --dataset tiny_stories
-python3 scripts/train.py --dataset tiny_stories
 ```
+
+For a larger corpus such as TinyStories, the default toy-sized transformer settings are usually too small. A much stronger recipe is:
+
+```bash
+python3 scripts/train.py \
+  --dataset tiny_stories \
+  --n_layers 12 \
+  --n_heads 12 \
+  --d_model 768 \
+  --expansion_factor 4 \
+  --batch_size 32 \
+  --block_size 512 \
+  --max_steps 50000 \
+  --warmup_steps 1000 \
+  --max_lr 6e-4 \
+  --min_lr 6e-5 \
+  --save_every 5000
+```
+
+This uses a noticeably larger GPT-style model than the Shakespeare smoke test and is a much better fit for a bigger dataset like TinyStories. The script also exposes the core architecture knobs directly if you want to tune the model further.
 
 This path uses the `datasets` package and may download data on first run.
 

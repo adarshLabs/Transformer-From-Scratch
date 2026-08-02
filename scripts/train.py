@@ -30,6 +30,11 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--num_val_batches", type=int, default=50)
     parser.add_argument("--block_size", type=int, default=256)
+    parser.add_argument("--n_layers", type=int, default=6)
+    parser.add_argument("--n_heads", type=int, default=6)
+    parser.add_argument("--d_model", type=int, default=384)
+    parser.add_argument("--expansion_factor", type=int, default=4)
+    parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--dataset", default="tiny_shakespeare")
     parser.add_argument("--save_every", type=int, default=500)
     parser.add_argument(
@@ -244,6 +249,11 @@ def main():
     config = GPT2Config()
     config.block_size = args.block_size
     config.vocab_size = meta["vocab_size"]
+    config.n_layers = args.n_layers
+    config.n_heads = args.n_heads
+    config.d_model = args.d_model
+    config.expansion_factor = args.expansion_factor
+    config.dropout = args.dropout
 
     tokenizer = tiktoken.get_encoding(meta["tokenizer"])
     model = GPT2(config).to(device)
@@ -255,6 +265,9 @@ def main():
     print(f"Device       : {device}")
     print(f"Vocabulary   : {config.vocab_size}")
     print(f"Block size   : {config.block_size}")
+    print(f"Layers       : {config.n_layers}")
+    print(f"Heads        : {config.n_heads}")
+    print(f"d_model      : {config.d_model}")
     print(f"Batch size   : {args.batch_size}")
     print(f"Steps        : {args.max_steps}")
     print(f"Train tokens : {len(train_data):,}")
