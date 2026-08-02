@@ -250,6 +250,7 @@ def main():
     path = Path("data/processed")
     train_data, val_data, meta = load_data(path / args.dataset)
 
+    # Allow the CLI to scale the model for larger datasets such as TinyStories.
     config = GPT2Config(
         vocab_size=meta["vocab_size"],
         block_size=args.block_size,

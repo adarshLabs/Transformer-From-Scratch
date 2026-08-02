@@ -1,8 +1,8 @@
 # Transformer From Scratch
 
-A clean, educational PyTorch implementation of transformer internals. This repository builds the core pieces by hand: scaled dot-product attention, multi-head attention, masking, positional encodings, encoder/decoder blocks, and a compact GPT-style decoder-only language model that can be trained on small text datasets.
+A clean, educational PyTorch implementation of transformer internals. This repository builds the core pieces by hand: scaled dot-product attention, multi-head attention, masking, positional encodings, encoder/decoder blocks, and a compact GPT-style decoder-only language model.
 
-The goal is to make transformer mechanics readable and hackable without hiding the important parts behind a large framework.
+The goal is to make transformer mechanics easy to read, inspect, and modify without hiding the important details behind a large framework.
 
 ## What Is Included
 
@@ -107,7 +107,7 @@ The preprocessing script also supports TinyStories from Hugging Face:
 python3 scripts/preprocess.py --dataset tiny_stories
 ```
 
-For a larger corpus such as TinyStories, the default toy-sized transformer settings are usually too small. A much stronger recipe is:
+For a larger corpus such as TinyStories, the default toy-sized transformer settings are usually too small. A stronger recipe is:
 
 ```bash
 python3 scripts/train.py \
@@ -125,9 +125,9 @@ python3 scripts/train.py \
   --save_every 5000
 ```
 
-This uses a noticeably larger GPT-style model than the Shakespeare smoke test and is a much better fit for a bigger dataset like TinyStories. The script also exposes the core architecture knobs directly if you want to tune the model further.
+This uses a noticeably larger GPT-style model than the Shakespeare smoke test and is a much better fit for a larger dataset like TinyStories. The script also exposes the core architecture knobs directly if you want to tune the model further.
 
-This path uses the `datasets` package and may download data on first run.
+If you have a GPU or Apple Silicon hardware, this is the kind of setup that benefits most from it. The path uses the `datasets` package and may download data on first run.
 
 ## Useful Demos And Tests
 
