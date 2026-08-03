@@ -52,6 +52,12 @@ def main():
     print(f"Trainable Parameters : {trainable_params:,}")
 
     model.eval()
+    print("\n=== Model Configuration ===")
+
+    for key, value in ckpt["config"].items():
+
+        print(f"{key:20}: {value}")
+
     with torch.no_grad():
         seed = args.prompt
         query = torch.tensor(tokenizer.encode(seed), dtype=torch.long, device=device)
@@ -82,14 +88,16 @@ def main():
         )  # with kv cache
         t3 = time.perf_counter()
 
-        result1 = tokenizer.decode(out1[0].tolist())
-        result2 = tokenizer.decode(out2[0].tolist())
+        result1 = tokenizer.decode(out1[0].tolist(), errors='replace')
+        result2 = tokenizer.decode(out2[0].tolist(), errors='replace')
         print(f"Without cache : {t1-t0:.3f}s")
         print(f"With cache: {t3-t2:.3f}s")
         print(f"Speedup: {(t1-t0)/(t3-t2):.2f}")
 
         print(f"\n\n---Generated Text 1---\n{result1}")
         print(f"\n\n---Generated Text 2---\n{result2}")
+
+
 
 
 if __name__ == "__main__":
