@@ -46,18 +46,17 @@ def main():
         meta = pickle.load(f)
     tokenizer = tiktoken.get_encoding(meta["tokenizer"])
 
+    # print("\n=== Model Configuration ===")
+    # for key, value in ckpt["config"].items():
+    #     print(f"{key:20}: {value}")
+
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Total Parameters     : {total_params:,}")
     print(f"Trainable Parameters : {trainable_params:,}")
 
+    
+
     model.eval()
-    print("\n=== Model Configuration ===")
-
-    for key, value in ckpt["config"].items():
-
-        print(f"{key:20}: {value}")
-
     with torch.no_grad():
         seed = args.prompt
         query = torch.tensor(tokenizer.encode(seed), dtype=torch.long, device=device)
