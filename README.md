@@ -116,18 +116,37 @@ python3 scripts/train.py \
   --n_heads 12 \
   --d_model 768 \
   --expansion_factor 4 \
-  --batch_size 32 \
-  --block_size 512 \
-  --max_steps 50000 \
-  --warmup_steps 1000 \
-  --max_lr 6e-4 \
-  --min_lr 6e-5 \
-  --save_every 5000
+  --batch_size 24 \
+  --block_size 256 \
+  --max_steps 10000 \
+  --warmup_steps 300 \
+  --max_lr 3e-4 \
+  --min_lr 3e-5 \
+  --max_norm 1.0 \
+  --log_every 100 \
+  --save_every 1000 \
+  --dropout 0.0
 ```
 
 This uses a noticeably larger GPT-style model than the Shakespeare smoke test and is a much better fit for a larger dataset like TinyStories. The script also exposes the core architecture knobs directly if you want to tune the model further.
 
 If you have a GPU or Apple Silicon hardware, this is the kind of setup that benefits most from it. The path uses the `datasets` package and may download data on first run.
+
+## GPT-2 Learning Path
+
+If your goal is to understand this repository's GPT-2 implementation without getting lost in the broader encoder/decoder transformer code, follow this path:
+
+1. `tokenizer/character_tokenizer.py` - see how text is converted into token IDs.
+2. `transformer_models/gpt2.py` - start here for the full GPT-style model definition.
+3. `transformer_blocks/gpt_decoder_block.py` - understand one decoder block used inside GPT-2.
+4. `attention/masking.py` - review the causal and padding masks used during attention.
+5. `attention/multi_head_attention.py` and `attention/scaled_dot_product_attention.py` - inspect the attention mechanism that powers the model.
+6. `positional_encoding/rotary_positional_embedding.py` - read the RoPE implementation used for position-aware attention.
+7. `positional_encoding/sinusoidal_positional_encoding.py` and `positional_encoding/learned_positional_embedding.py` - compare the other positional encoding options.
+8. `scripts/train.py` - follow the training loop and the data flow into the model.
+9. `scripts/generate.py` - see how sampling and KV caching work at inference time.
+
+You can safely skip `transformer_encoder.py` and the encoder-focused transformer block files unless you specifically want to study the encoder side of the project.
 
 ## Useful Demos And Tests
 
