@@ -64,9 +64,6 @@ def main():
             query = query.unsqueeze(0)
 
         torch.manual_seed(0)
-
-        if device.type == "cuda":
-            torch.cuda.synchronize()
         t0 = time.perf_counter()
         out1 = model.generate(
             query,
@@ -77,11 +74,8 @@ def main():
             use_cache=False,
         )  # without kv cache
         t1 = time.perf_counter()
-        if device.type == "cuda":
-            torch.cuda.synchronize()
+
         torch.manual_seed(0)
-        if device.type == "cuda":
-            torch.cuda.synchronize()
         t2 = time.perf_counter()
         out2 = model.generate(
             query,
@@ -92,8 +86,7 @@ def main():
             use_cache=True,
         )  # with kv cache
         t3 = time.perf_counter()
-        if device.type == "cuda":
-            torch.cuda.synchronize()
+
         result1 = tokenizer.decode(out1[0].tolist(), errors='replace')
         result2 = tokenizer.decode(out2[0].tolist(), errors='replace')
         print(f"Without cache : {t1-t0:.3f}s")
